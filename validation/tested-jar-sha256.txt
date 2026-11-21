@@ -1,0 +1,1 @@
+fc461bee6c335d58a76fc93d2b697ef93ba36fd34570b7dc20baaa827debea82  Shirokai-Safari-0.1.0-fabric-1.21.1.jar

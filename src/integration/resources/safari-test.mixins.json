@@ -1,0 +1,1 @@
+{"required":true,"package":"dev.shirokai.safari.test.mixin","compatibilityLevel":"JAVA_21","mixins":["PlayerMapAccess"],"injectors":{"defaultRequire":1}}

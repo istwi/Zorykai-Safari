@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"shirokai_safari_test","version":"1.0.0","name":"Disposable Safari Integration Fixture","environment":"server","entrypoints":{"main":["dev.shirokai.safari.test.SafariIntegration"]},"mixins":["safari-test.mixins.json"],"depends":{"shirokai_safari":"*"}}

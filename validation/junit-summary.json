@@ -1,0 +1,16 @@
+[
+  {
+    "name": "dev.shirokai.safari.StorageTest",
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.shirokai.safari.VisitTest",
+    "tests": "12",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

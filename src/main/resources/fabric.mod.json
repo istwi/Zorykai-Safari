@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"shirokai_safari","version":"${version}","name":"Shirokai Safari","environment":"server","entrypoints":{"main":["dev.shirokai.safari.SafariMod"]},"mixins":["shirokai-safari.mixins.json"],"depends":{"fabricloader":">=0.17.2","minecraft":"1.21.1","java":">=21","fabric-api":"*","cobblemon":"1.8.3+1.21.1"},"suggests":{"luckperms":"*","impactor":"*"}}

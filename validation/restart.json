@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "restart preserves interrupted return without charging offline time",
+    "ball balance survived real restart",
+    "interrupted purchase survives restart without automatic credit",
+    "recovery clears lock only after return",
+    "administrator can review interrupted purchase after checking payment",
+    "manual review credits pending bundle exactly once"
+  ],
+  "realClients": 0
+}

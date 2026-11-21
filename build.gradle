@@ -1,0 +1,39 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+    id 'java'
+}
+group = 'dev.shirokai.safari'
+version = providers.gradleProperty('mod_version').get()
+base { archivesName = 'Shirokai-Safari' }
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.impactdev.net/repository/development' }
+    maven { url = 'https://artefacts.cobblemon.com/releases' }
+}
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.17.2'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.6+1.21.1'
+    modImplementation 'com.cobblemon:fabric:1.8.3+1.21.1'
+    modCompileOnly 'net.luckperms:api:5.4'
+    compileOnly('net.impactdev.impactor.api:economy:5.3.5') { exclude group: 'net.kyori', module: 'event-api' }
+    testImplementation('net.impactdev.impactor.api:economy:5.3.5') { exclude group: 'net.kyori', module: 'event-api' }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(21); withSourcesJar() }
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
+processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand version: project.version } }
+test { useJUnitPlatform() }
+remapJar { archiveFileName = "Shirokai-Safari-${project.version}-fabric-1.21.1.jar" }
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+sourceSets { integration { compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath; runtimeClasspath += output + compileClasspath } }
+tasks.register('integrationJar', Jar) { from sourceSets.integration.output; archiveClassifier='integration-unmapped'; destinationDirectory=layout.buildDirectory.dir('integration') }
+tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) { dependsOn tasks.integrationJar; classpath.from(sourceSets.main.output); inputFile=tasks.integrationJar.archiveFile; archiveFileName='shirokai-safari-integration.jar'; destinationDirectory=layout.buildDirectory.dir('integration') }
