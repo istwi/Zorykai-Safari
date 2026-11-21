@@ -23,9 +23,11 @@ public abstract class SpawnerMixin {
                   "Lcom/cobblemon/mod/common/api/spawning/spawner/PlayerSpawner;tickTimerMultiplier:F"),
       remap = false)
   private float safariRate(PlayerSpawner self) {
-    return (float)
-        (tickTimerMultiplier
-            * (SafariMod.INSTANCE == null ? 1 : SafariMod.INSTANCE.multiplier(getUuid())));
+    var m = SafariMod.INSTANCE;
+    float actual = (float) (tickTimerMultiplier * (m == null ? 1 : m.multiplier(getUuid())));
+    if (m != null && m.eligible(getUuid()))
+      SpawnMetrics.timer(getUuid(), tickTimerMultiplier, actual);
+    return actual;
   }
 
   @Inject(method = "getZoneInput", at = @At("RETURN"), cancellable = true, remap = false)
@@ -40,6 +42,7 @@ public abstract class SpawnerMixin {
     int endX = Math.min(a.maxX() + 1, z.getBaseX() + z.getLength()),
         endY = Math.min(a.maxY() + 1, z.getBaseY() + z.getHeight()),
         endZ = Math.min(a.maxZ() + 1, z.getBaseZ() + z.getWidth());
+    if (endX > x && endY > y && endZ > v) SpawnMetrics.attempt();
     cir.setReturnValue(
         endX <= x || endY <= y || endZ <= v
             ? null

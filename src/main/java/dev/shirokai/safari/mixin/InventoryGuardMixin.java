@@ -19,7 +19,9 @@ public abstract class InventoryGuardMixin {
 
   @Inject(method = "handleContainerClick", at = @At("HEAD"), cancellable = true)
   private void safariClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
-    if (!safari$locked() || player.containerMenu instanceof SafariMenu) return;
+    if (!safari$locked()
+        || (player.containerMenu instanceof SafariMenu
+            || player.containerMenu instanceof AdminMenu)) return;
     ci.cancel();
     player.containerMenu.sendAllDataToRemote();
   }

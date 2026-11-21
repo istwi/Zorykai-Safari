@@ -77,6 +77,7 @@ public final class EconomyIntegration implements ModInitializer {
                 var fake = FakePlayer.get(w, new GameProfile(id, "SafariBuyer"));
                 fake.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
                 fake.setPos(100.5, 200, 100.5);
+                fake.connection = new SafariIntegration.Capture(s, fake);
                 var access = (PlayerMapAccess) s.getPlayerList();
                 access.safariPlayers().add(fake);
                 access.safariMap().put(id, fake);
@@ -105,7 +106,8 @@ public final class EconomyIntegration implements ModInitializer {
       main(
           s,
           () -> {
-            new Shop(m).buy(p);
+            m.confirmBuy(p);
+            m.completePurchase(p);
             return null;
           });
       waitFor(s, () -> m.visit(p).purchase == null);
@@ -130,7 +132,8 @@ public final class EconomyIntegration implements ModInitializer {
       main(
           s,
           () -> {
-            new Shop(m).buy(p);
+            m.confirmBuy(p);
+            m.completePurchase(p);
             return null;
           });
       waitFor(s, () -> m.visit(p).purchase == null);
@@ -138,6 +141,56 @@ public final class EconomyIntegration implements ModInitializer {
           main(s, () -> Balls.count(p, m.visit(p))) == 64,
           "insufficient funds does not grant balls");
       check(account.balance().signum() == 0, "insufficient funds does not make negative balance");
+      var capture = (SafariIntegration.Capture) p.connection;
+      check(
+          main(
+              s,
+              () ->
+                  capture.packets.stream()
+                      .anyMatch(
+                          packet ->
+                              packet
+                                      instanceof
+                                      net.minecraft.network.protocol.game
+                                                  .ClientboundSystemChatPacket
+                                              chat
+                                  && chat.content().getString().contains("saldo insuficiente")
+                                  && chat.content().getString().contains("impactor:dollars"))),
+          "refusal explains insufficient funds, currency and available balance");
+      check(
+          main(
+                  s,
+                  () ->
+                      s.getCommands()
+                          .getDispatcher()
+                          .execute(
+                              "safariadmin moeda impactor:dollars",
+                              p.createCommandSourceStack().withPermission(4)))
+              == 1,
+          "currency command accepts actual namespaced Impactor currency");
+      boolean expired = false;
+      try {
+        main(
+            s,
+            () -> {
+              m.completePurchase(p);
+              return null;
+            });
+      } catch (Exception expected) {
+        expired = true;
+      }
+      check(expired, "confirmation cannot be reused to charge twice");
+      main(
+          s,
+          () -> {
+            m.config.bundlePrice = java.math.BigDecimal.ZERO;
+            m.confirmBuy(p);
+            m.completePurchase(p);
+            return null;
+          });
+      check(
+          main(s, () -> Balls.count(p, m.visit(p))) == 96 && account.balance().signum() == 0,
+          "zero-price package grants balls without invalid zero withdrawal");
       passed = true;
     } catch (Throwable e) {
       e.printStackTrace();

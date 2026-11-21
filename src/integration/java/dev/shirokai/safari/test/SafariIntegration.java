@@ -21,6 +21,57 @@ import net.minecraft.world.level.block.Blocks;
 public final class SafariIntegration implements ModInitializer {
   private final List<String> checks = new ArrayList<>();
   private boolean ran;
+
+  static class Capture extends net.minecraft.server.network.ServerGamePacketListenerImpl {
+    final java.util.List<net.minecraft.network.protocol.Packet<?>> packets =
+        new java.util.ArrayList<>();
+
+    Capture(MinecraftServer server, net.minecraft.server.level.ServerPlayer player) {
+      super(
+          server,
+          new net.minecraft.network.Connection(
+              net.minecraft.network.protocol.PacketFlow.SERVERBOUND),
+          player,
+          net.minecraft.server.network.CommonListenerCookie.createInitial(
+              player.getGameProfile(), false));
+    }
+
+    @Override
+    public void send(
+        net.minecraft.network.protocol.Packet<?> packet,
+        net.minecraft.network.PacketSendListener callbacks) {
+      packets.add(packet);
+    }
+  }
+
+  private int bossOps(Capture capture, UUID id, String operation) {
+    int count = 0;
+    for (var packet : capture.packets)
+      if (packet instanceof net.minecraft.network.protocol.game.ClientboundBossEventPacket boss) {
+        var found = new boolean[1];
+        boss.dispatch(
+            new net.minecraft.network.protocol.game.ClientboundBossEventPacket.Handler() {
+              public void add(
+                  UUID uuid,
+                  net.minecraft.network.chat.Component name,
+                  float progress,
+                  net.minecraft.world.BossEvent.BossBarColor color,
+                  net.minecraft.world.BossEvent.BossBarOverlay overlay,
+                  boolean dark,
+                  boolean music,
+                  boolean fog) {
+                found[0] = uuid.equals(id) && operation.equals("add");
+              }
+
+              public void remove(UUID uuid) {
+                found[0] = uuid.equals(id) && operation.equals("remove");
+              }
+            });
+        if (found[0]) count++;
+      }
+    return count;
+  }
+
   private static final UUID ID = UUID.fromString("a0c4c320-178c-43de-a26c-f067e01e0fbb");
 
   public void onInitialize() {
@@ -59,6 +110,8 @@ public final class SafariIntegration implements ModInitializer {
         w.setBlock(new BlockPos(x, 199, z), Blocks.STONE.defaultBlockState(), 3);
     var p = FakePlayer.get(w, new GameProfile(ID, "SafariTest"));
     p.setPos(100.5, 200, 100.5);
+    var capture = new Capture(s, p);
+    p.connection = capture;
     p.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
     var access = (PlayerMapAccess) s.getPlayerList();
     access.safariPlayers().add(p);
@@ -91,6 +144,15 @@ public final class SafariIntegration implements ModInitializer {
     m.config.lobby = new Config.Position("minecraft:overworld", 100.5, 200, 100.5, 0, 0);
     m.config.validate();
     var v = m.visit(p);
+    var raidBars = RaidHudBridge.bars();
+    net.minecraft.server.level.ServerBossEvent raidBar =
+        raidBars.isEmpty() ? null : raidBars.getFirst();
+    if (raidBar != null) {
+      raidBar.addPlayer(p);
+      check(
+          bossOps(capture, raidBar.getId(), "add") > 0,
+          "actual Raid boss bar visible before Safari entry");
+    }
     p.getInventory().add(new ItemStack(Items.DIAMOND));
     boolean denied = false;
     try {
@@ -102,14 +164,42 @@ public final class SafariIntegration implements ModInitializer {
     p.getInventory().clearContent();
     m.enter(p);
     check(m.active(p) && m.inside(p), "entry teleports into area");
+    var syncHud =
+        SafariHud.class.getDeclaredMethod(
+            "sync", SafariMod.class, net.minecraft.server.level.ServerPlayer.class);
+    syncHud.setAccessible(true);
+    syncHud.invoke(null, m, p);
+    check(SafariHud.bar(ID) != null, "Safari boss bar is created on entry");
+    if (raidBar != null) {
+      check(
+          bossOps(capture, raidBar.getId(), "remove") > 0,
+          "Raid boss bar is hidden while Safari is active");
+      int packets = capture.packets.size();
+      raidBar.setName(net.minecraft.network.chat.Component.literal("RAID • teste visual"));
+      check(
+          capture.packets.size() == packets,
+          "Raid updates are suppressed without changing raid membership");
+    }
+
     check(Balls.count(p, v) == 32, "first entry grants 32 bound balls");
+    check(
+        net.minecraft.core.registries.BuiltInRegistries.ITEM
+            .getKey(p.getInventory().getItem(0).getItem())
+            .toString()
+            .equals("cobblemon:safari_ball"),
+        "ball bundle uses actual Cobblemon Safari Ball");
     check(v.budgetMillis == 3600000, "normal budget one hour");
     check(
         !p.getInventory().add(new ItemStack(Items.DIRT)),
         "direct external inventory additions blocked");
     var drop = new ItemEntity(w, p.getX(), p.getY(), p.getZ(), new ItemStack(Items.EMERALD));
     drop.playerTouch(p);
-    check(drop.getItem().getCount() == 1, "external item pickup blocked");
+    check(
+        drop.isRemoved() && p.getInventory().contains(new ItemStack(Items.EMERALD)),
+        "ground items can be collected inside Safari");
+    check(
+        !GroundPickup.allowed(p, new ItemStack(Items.DIRT)),
+        "ground pickup authorization does not leak into direct grants");
     for (String cmd :
         List.of(
             "home",
@@ -146,11 +236,53 @@ public final class SafariIntegration implements ModInitializer {
     check(
         v.balls == 27 && !m.locked(p) && p.getX() == 100.5,
         "exit stores remaining balls and returns");
+    syncHud.invoke(null, m, p);
+    check(SafariHud.bar(ID) == null, "Safari boss bar removed after exit");
+    if (raidBar != null)
+      check(
+          bossOps(capture, raidBar.getId(), "add") >= 2,
+          "Raid boss bar restored after Safari exit");
     long remaining = v.remaining();
+    check(
+        p.getInventory().contains(new ItemStack(Items.EMERALD)),
+        "ground loot survives Safari exit");
+    p.getInventory().clearContent();
     m.enter(p);
     check(
         Balls.count(p, v) == 27 && v.remaining() == remaining,
         "reentry preserves budget and balls");
+    var adminMenu = new AdminMenu(92, p.getInventory(), m);
+    check(adminMenu.slots.size() == 63, "admin menu has protected status slots");
+    int eventCommand =
+        s.getCommands()
+            .getDispatcher()
+            .execute(
+                "safariadmin evento forma cobblemon:rattata alolan 100 1",
+                p.createCommandSourceStack().withPermission(4));
+    check(
+        eventCommand == 1 && m.data.event.forms.containsKey("cobblemon:rattata"),
+        "form event command accepts namespaced species without quotes");
+    check(
+        capture.packets.stream()
+            .anyMatch(
+                packet ->
+                    packet
+                        instanceof
+                        net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket),
+        "event broadcasts actual title packet");
+    check(
+        capture.packets.stream()
+            .anyMatch(
+                packet ->
+                    packet
+                            instanceof
+                            net.minecraft.network.protocol.game.ClientboundSystemChatPacket chat
+                        && chat.content().getString().contains("EVENTO SAFARI")),
+        "event broadcasts configurable chat announcement");
+    check(
+        m.data.event.starts > 0 && !m.data.event.endAnnounced,
+        "event records its timer for boss bar and end broadcast");
+    m.data.event = new Storage.Event();
     check(m.multiplier(ID) == 2, "area spawn multiplier 2x");
     var spawner = new PlayerSpawner(p, BestSpawner.INSTANCE.getFishingSpawner().getSpawnPool());
     spawner.setTicksUntilNextSpawn(100);
@@ -160,6 +292,22 @@ public final class SafariIntegration implements ModInitializer {
     m.data.event.ends = System.currentTimeMillis() + 60000;
     m.data.event.spawn = 2;
     check(m.multiplier(ID) == 4, "spawn event multiplies baseline");
+    var hud =
+        SafariHud.class.getDeclaredMethod(
+            "sync", SafariMod.class, net.minecraft.server.level.ServerPlayer.class);
+    hud.setAccessible(true);
+    hud.invoke(null, m, p);
+    check(
+        SafariHud.bar(ID) != null && SafariHud.bar(ID).getName().getString().contains("EVENTO"),
+        "active event replaces normal Safari boss bar");
+    var keptEnd = m.data.event.ends;
+    m.data.event.ends = System.currentTimeMillis() - 1;
+    hud.invoke(null, m, p);
+    check(
+        SafariHud.bar(ID).getName().getString().contains("Tempo"),
+        "Safari boss bar returns after event expiration");
+    m.data.event.ends = keptEnd;
+
     m.data.event.shinyChance = 1;
     var cause = new com.cobblemon.mod.common.api.spawning.SpawnCause(spawner, p);
     var pos =
@@ -185,6 +333,8 @@ public final class SafariIntegration implements ModInitializer {
     check(
         spawned.getPokemon().getForm().getName().equalsIgnoreCase("Alola"),
         "regional form event applies to real spawn action");
+    w.addFreshEntity(spawned);
+    check(SpawnMetrics.spawns() > 0, "admin spawn counter counts actual entity insertion");
     spawned.discard();
     var outside =
         new com.cobblemon.mod.common.api.spawning.position.BasicSpawnablePosition(

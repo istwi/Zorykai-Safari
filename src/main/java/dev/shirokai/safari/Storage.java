@@ -16,7 +16,8 @@ public final class Storage {
   }
 
   public static final class Event {
-    public long ends, bonusMillis;
+    public long starts, ends, bonusMillis;
+    public boolean endAnnounced = true;
     public double spawn = 1, shinyChance = 0, formChance = 0;
     public Map<String, String> forms = new LinkedHashMap<>();
 

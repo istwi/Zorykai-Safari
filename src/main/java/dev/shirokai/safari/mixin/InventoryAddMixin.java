@@ -18,6 +18,7 @@ public abstract class InventoryAddMixin {
     var inventory = (Inventory) (Object) this;
     if (inventory.player instanceof ServerPlayer p
         && SafariMod.lockedPlayer(p)
-        && !Balls.owns(stack, p, SafariMod.INSTANCE.visit(p))) cir.setReturnValue(false);
+        && !Balls.owns(stack, p, SafariMod.INSTANCE.visit(p))
+        && !GroundPickup.allowed(p, stack)) cir.setReturnValue(false);
   }
 }

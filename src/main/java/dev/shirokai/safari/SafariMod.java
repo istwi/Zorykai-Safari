@@ -30,6 +30,7 @@ public final class SafariMod implements ModInitializer {
   public static SafariMod INSTANCE;
   public Config config;
   public Storage.Data data;
+  public Messages messages;
   public MinecraftServer server;
   private Path configPath, statePath;
   private boolean healthy;
@@ -47,11 +48,18 @@ public final class SafariMod implements ModInitializer {
   @Override
   public void onInitialize() {
     INSTANCE = this;
+    SafariHud.register();
+    SpawnMetrics.register();
     configPath = FabricLoader.getInstance().getConfigDir().resolve("shirokai-safari.json");
     try {
       if (!Files.exists(configPath)) Storage.write(configPath, new Config());
       config = Storage.read(configPath, Config.class);
+      if ("cobblemon:poke_ball".equals(config.ballItem)) {
+        config.ballItem = "cobblemon:safari_ball";
+        Storage.write(configPath, config);
+      }
       config.validate();
+      messages = Messages.load(configPath.resolveSibling("shirokai-safari-messages.json"));
     } catch (Exception e) {
       throw new IllegalStateException("Configuração do Safari inválida", e);
     }
@@ -75,6 +83,10 @@ public final class SafariMod implements ModInitializer {
               }
             }
             validateItems();
+            if (data.event.running(System.currentTimeMillis()) && data.event.starts == 0) {
+              data.event.starts = System.currentTimeMillis();
+              data.event.endAnnounced = false;
+            }
             healthy = true;
             shop = new Shop(this);
             save();
@@ -202,36 +214,108 @@ public final class SafariMod implements ModInitializer {
                                   run(
                                       c.getSource(),
                                       () -> {
-                                        var p = c.getSource().getPlayerOrException();
-                                        var offer = confirmations.remove(p.getUUID());
-                                        if (offer == null
-                                            || offer.ends() < System.currentTimeMillis()
-                                            || offer.price().compareTo(config.bundlePrice) != 0
-                                            || offer.bundle() != config.ballBundle
-                                            || !offer.currency().equals(config.currency)
-                                            || offer.cycle() != visit(p).cycleStart)
-                                          throw new IllegalStateException(
-                                              "Oferta expirada/alterada; use /safari comprar"
-                                                  + " novamente");
-                                        shop.buy(p);
+                                        completePurchase(c.getSource().getPlayerOrException());
                                       }))));
+          root.then(
+              Commands.literal("saldo")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () ->
+                                  shop.balance(
+                                      c.getSource(), c.getSource().getPlayerOrException()))));
+          root.then(
+              Commands.literal("eventos")
+                  .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource()))));
+          root.then(
+              Commands.literal("bolas")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> {
+                                var p = c.getSource().getPlayerOrException();
+                                if (!active(p) || !Balls.equip(p, visit(p)))
+                                  throw new IllegalStateException(
+                                      "Nenhuma Safari Ball disponível para equipar");
+                                tell(p, "Safari Balls equipadas.");
+                              })));
           dispatcher.register(root);
           var admin =
               Commands.literal("safariadmin")
                   .requires(Permissions::admin)
+                  .executes(c -> adminRoot(c.getSource()));
+          admin.then(
+              Commands.literal("menu")
                   .executes(
-                      c -> {
-                        c.getSource()
-                            .sendSuccess(
-                                () ->
-                                    Component.literal(
-                                        "Safari: pos1, pos2, criar, entrada, saida, reload, preco"
-                                            + " <valor>, tempo <jogador> <minutos>, evento"
-                                            + " spawn/shiny/forma/parar, compra <jogador>"
-                                            + " confirmar/cancelar"),
-                                false);
-                        return 1;
-                      });
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> openAdmin(c.getSource().getPlayerOrException()))));
+          admin.then(Commands.literal("ajuda").executes(c -> AdminHelp.show(c.getSource())));
+          admin.then(Commands.literal("help").executes(c -> AdminHelp.show(c.getSource())));
+          admin.then(
+              Commands.literal("mensagens")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> {
+                                var candidate =
+                                    Messages.load(
+                                        configPath.resolveSibling("shirokai-safari-messages.json"));
+                                messages = candidate;
+                                c.getSource()
+                                    .sendSuccess(
+                                        () -> Component.literal("Safari: mensagens recarregadas."),
+                                        false);
+                              })));
+          admin.then(
+              Commands.literal("eventos")
+                  .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource()))));
+          admin.then(
+              Commands.literal("economia")
+                  .then(
+                      Commands.argument(
+                              "jogador", net.minecraft.commands.arguments.EntityArgument.player())
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () ->
+                                          shop.balance(
+                                              c.getSource(),
+                                              net.minecraft.commands.arguments.EntityArgument
+                                                  .getPlayer(c, "jogador"))))));
+          admin.then(
+              Commands.literal("moeda")
+                  .then(
+                      Commands.argument(
+                              "moeda",
+                              net.minecraft.commands.arguments.ResourceLocationArgument.id())
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () -> {
+                                        String reference =
+                                            net.minecraft.commands.arguments
+                                                .ResourceLocationArgument.getId(c, "moeda")
+                                                .toString();
+                                        if (!Shop.currencyAvailable(reference))
+                                          throw new IllegalStateException(
+                                              "Moeda não encontrada no Impactor: " + reference);
+                                        var next = copyConfig();
+                                        next.currency = reference;
+                                        saveConfig(next);
+                                        c.getSource()
+                                            .sendSuccess(
+                                                () ->
+                                                    Component.literal(
+                                                        "Safari: moeda alterada para " + reference),
+                                                false);
+                                      }))));
           for (int i = 0; i < 2; i++) {
             final int index = i;
             admin.then(
@@ -281,6 +365,11 @@ public final class SafariMod implements ModInitializer {
                                 next.lobby = position(c.getSource().getPlayerOrException());
                                 next.validate();
                                 saveConfig(next);
+                                c.getSource()
+                                    .sendSuccess(
+                                        () ->
+                                            Component.literal("Safari: saída de emergência salva."),
+                                        false);
                               })));
           admin.then(
               Commands.literal("reload")
@@ -291,8 +380,9 @@ public final class SafariMod implements ModInitializer {
                               () -> {
                                 var next = Storage.read(configPath, Config.class);
                                 next.validate();
-                                if (!next.ballItem.equals("cobblemon:poke_ball"))
-                                  throw new IllegalStateException("Safari usa cobblemon:poke_ball");
+                                if (!next.ballItem.equals("cobblemon:safari_ball"))
+                                  throw new IllegalStateException(
+                                      "Safari usa cobblemon:safari_ball");
                                 if (data.players.values().stream()
                                     .anyMatch(v -> v.active || v.recovery))
                                   throw new IllegalStateException(
@@ -315,6 +405,12 @@ public final class SafariMod implements ModInitializer {
                                                 StringArgumentType.getString(c, "valor"));
                                         next.validate();
                                         saveConfig(next);
+                                        c.getSource()
+                                            .sendSuccess(
+                                                () ->
+                                                    Component.literal(
+                                                        "Safari: configuração salva."),
+                                                false);
                                       }))));
           admin.then(
               Commands.literal("tempo")
@@ -344,7 +440,12 @@ public final class SafariMod implements ModInitializer {
                                                 tell(
                                                     p, "Bônus de tempo adicionado ao ciclo atual.");
                                               })))));
-          var event = Commands.literal("evento");
+          var event =
+              Commands.literal("evento")
+                  .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource())));
+          event.then(
+              Commands.literal("status")
+                  .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource()))));
           event.then(
               Commands.literal("parar")
                   .executes(
@@ -354,6 +455,7 @@ public final class SafariMod implements ModInitializer {
                               () -> {
                                 data.event = new Storage.Event();
                                 save();
+                                eventChanged(c.getSource());
                               })));
           event.then(
               Commands.literal("tempo")
@@ -380,6 +482,7 @@ public final class SafariMod implements ModInitializer {
                                                         Math.addExact(v.budgetMillis, bonus);
                                                 data.event.bonusMillis = bonus;
                                                 save();
+                                                eventChanged(c.getSource());
                                               })))));
           event.then(
               Commands.literal("spawn")
@@ -398,6 +501,7 @@ public final class SafariMod implements ModInitializer {
                                                     DoubleArgumentType.getDouble(
                                                         c, "multiplicador");
                                                 save();
+                                                eventChanged(c.getSource());
                                               })))));
           event.then(
               Commands.literal("shiny")
@@ -417,11 +521,14 @@ public final class SafariMod implements ModInitializer {
                                                             c, "chance_percentual")
                                                         / 100;
                                                 save();
+                                                eventChanged(c.getSource());
                                               })))));
           event.then(
               Commands.literal("forma")
                   .then(
-                      Commands.argument("especie", StringArgumentType.word())
+                      Commands.argument(
+                              "especie",
+                              net.minecraft.commands.arguments.ResourceLocationArgument.id())
                           .then(
                               Commands.argument("forma", StringArgumentType.word())
                                   .then(
@@ -439,10 +546,10 @@ public final class SafariMod implements ModInitializer {
                                                               () -> {
                                                                 var species =
                                                                     PokemonSpecies.getByIdentifier(
-                                                                        ResourceLocation.parse(
-                                                                            StringArgumentType
-                                                                                .getString(
-                                                                                    c, "especie")));
+                                                                        net.minecraft.commands
+                                                                            .arguments
+                                                                            .ResourceLocationArgument
+                                                                            .getId(c, "especie"));
                                                                 String form =
                                                                     StringArgumentType.getString(
                                                                         c, "forma");
@@ -467,6 +574,7 @@ public final class SafariMod implements ModInitializer {
                                                                             c, "chance_percentual")
                                                                         / 100;
                                                                 save();
+                                                                eventChanged(c.getSource());
                                                               })))))));
           var mode = Commands.literal("modo");
           mode.then(
@@ -571,8 +679,8 @@ public final class SafariMod implements ModInitializer {
 
   private void validateItems() {
     if (!BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(config.ballItem))
-        || !config.ballItem.equals("cobblemon:poke_ball"))
-      throw new IllegalArgumentException("Safari usa cobblemon:poke_ball");
+        || !config.ballItem.equals("cobblemon:safari_ball"))
+      throw new IllegalArgumentException("Safari usa cobblemon:safari_ball");
   }
 
   public Visit visit(ServerPlayer p) {
@@ -620,6 +728,7 @@ public final class SafariMod implements ModInitializer {
             + " | bolas: "
             + (v.active ? Balls.count(p, v) : v.balls));
     if (v.purchase != null) tell(p, "Compra pendente de revisão: " + v.purchase);
+    eventStatus(p.createCommandSourceStack());
   }
 
   public void menu(ServerPlayer p) {
@@ -797,7 +906,22 @@ public final class SafariMod implements ModInitializer {
             + config.ballBundle
             + " bolas por $"
             + config.bundlePrice.toPlainString()
-            + ". Confirme em 30s: /safari comprar confirmar");
+            + ". Confirme em 30s no menu ou use /safari comprar confirmar. Moeda: "
+            + config.currency);
+    p.sendSystemMessage(
+        Component.literal("[CONFIRMAR COMPRA]")
+            .withStyle(
+                style ->
+                    style
+                        .withColor(net.minecraft.ChatFormatting.GREEN)
+                        .withClickEvent(
+                            new net.minecraft.network.chat.ClickEvent(
+                                net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND,
+                                "/safari comprar confirmar"))));
+    p.openMenu(
+        new SimpleMenuProvider(
+            (id, inventory, player) -> new SafariMenu(id, inventory, this, true),
+            Component.literal("Confirmar compra de Safari Balls")));
   }
 
   private void review(ServerPlayer p, boolean confirmed) {
@@ -819,7 +943,9 @@ public final class SafariMod implements ModInitializer {
 
   private void eventFor(int minutes) {
     if (!data.event.running(System.currentTimeMillis())) data.event = new Storage.Event();
-    data.event.ends = System.currentTimeMillis() + minutes * 60000L;
+    data.event.starts = System.currentTimeMillis();
+    data.event.endAnnounced = false;
+    data.event.ends = data.event.starts + minutes * 60000L;
   }
 
   public boolean eligible(UUID player) {
@@ -857,6 +983,11 @@ public final class SafariMod implements ModInitializer {
   private void tick() {
     if (!healthy || server == null) return;
     long now = System.currentTimeMillis();
+    if (data.event.ends > 0 && !data.event.running(now) && !data.event.endAnnounced) {
+      data.event.endAnnounced = true;
+      save();
+      Announcements.event(this, false);
+    }
     boolean changed = false;
     for (var p : List.copyOf(server.getPlayerList().getPlayers())) {
       var v = data.players.get(p.getUUID().toString());
@@ -872,14 +1003,13 @@ public final class SafariMod implements ModInitializer {
           }
           continue;
         }
-        if (p.containerMenu != p.inventoryMenu && !(p.containerMenu instanceof SafariMenu))
-          p.closeContainer();
+        if (p.containerMenu != p.inventoryMenu
+            && !(p.containerMenu instanceof SafariMenu)
+            && !(p.containerMenu instanceof AdminMenu)) p.closeContainer();
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(5);
         p.getFoodData().setExhaustion(0);
-        p.displayClientMessage(
-            Component.literal("Safari • " + format(v.remaining()) + " • " + v.balls + " bolas"),
-            true);
+
       } else if (v != null && v.recovery && now >= retry.getOrDefault(p.getUUID(), 0L)) {
         retry.put(p.getUUID(), now + 10000);
         recover(p);
@@ -918,5 +1048,76 @@ public final class SafariMod implements ModInitializer {
       v.recovery = true;
       m.save();
     }
+  }
+
+  public void completePurchase(ServerPlayer p) {
+    var offer = confirmations.remove(p.getUUID());
+    if (offer == null
+        || offer.ends() < System.currentTimeMillis()
+        || offer.price().compareTo(config.bundlePrice) != 0
+        || offer.bundle() != config.ballBundle
+        || !offer.currency().equals(config.currency)
+        || offer.cycle() != visit(p).cycleStart)
+      throw new IllegalStateException("Oferta expirada/alterada; use /safari comprar novamente");
+    shop.buy(p);
+  }
+
+  public String eventDescription() {
+    var event = data.event;
+    if (!event.running(System.currentTimeMillis())) return "Nenhum evento ativo.";
+    var effects = new java.util.ArrayList<String>();
+    if (event.spawn != 1)
+      effects.add("Spawn " + Math.min(10, config.spawnMultiplier * event.spawn) + "x");
+    if (event.shinyChance > 0) effects.add("Shiny adicional " + percent(event.shinyChance) + "%");
+    if (event.formChance > 0 && !event.forms.isEmpty())
+      effects.add("Formas " + event.forms + " • " + percent(event.formChance) + "%");
+    if (event.bonusMillis > 0) effects.add("Tempo extra " + format(event.bonusMillis));
+    return "Evento ativo • "
+        + String.join(" | ", effects)
+        + " | restante "
+        + format(event.ends - System.currentTimeMillis());
+  }
+
+  private String percent(double chance) {
+    return java.math.BigDecimal.valueOf(chance * 100).stripTrailingZeros().toPlainString();
+  }
+
+  public void eventStatus(CommandSourceStack source) {
+    source.sendSuccess(() -> Component.literal("✦ SAFARI » " + eventDescription()), false);
+  }
+
+  private void eventChanged(CommandSourceStack source) {
+    Announcements.event(this, data.event.running(System.currentTimeMillis()));
+    eventStatus(source);
+    if (source.isPlayer())
+      tell(
+          source.getPlayer(),
+          "Somente novos spawns do Safari recebem os efeitos. Use /safariadmin evento status para"
+              + " consultar.");
+  }
+
+  public String eventEffects() {
+    var e = data.event;
+    var parts = new java.util.ArrayList<String>();
+    if (e.spawn != 1) parts.add("Spawn " + Math.min(10, config.spawnMultiplier * e.spawn) + "x");
+    if (e.shinyChance > 0) parts.add("Shiny +" + percent(e.shinyChance) + "%");
+    if (e.formChance > 0 && !e.forms.isEmpty())
+      parts.add("Formas especiais " + percent(e.formChance) + "%");
+    if (e.bonusMillis > 0) parts.add("Tempo extra " + format(e.bonusMillis));
+    return parts.isEmpty() ? "Safari" : String.join(" • ", parts);
+  }
+
+  private int adminRoot(CommandSourceStack source) {
+    if (!source.isPlayer()) return AdminHelp.show(source);
+    return run(source, () -> openAdmin(source.getPlayerOrException()));
+  }
+
+  public void openAdmin(ServerPlayer player) {
+    if (!Permissions.admin(player.createCommandSourceStack()))
+      throw new IllegalStateException("Sem permissão administrativa");
+    player.openMenu(
+        new SimpleMenuProvider(
+            (id, inventory, p) -> new AdminMenu(id, inventory, this),
+            Component.literal("Safari • Administração")));
   }
 }

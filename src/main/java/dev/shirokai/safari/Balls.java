@@ -59,6 +59,7 @@ public final class Balls {
       if (!p.getInventory().add(stack)) throw new IllegalStateException("Inventário sem espaço");
       amount -= n;
     }
+    equip(p, v);
     p.inventoryMenu.broadcastChanges();
   }
 
@@ -71,5 +72,19 @@ public final class Balls {
         room += Math.max(0, s.getMaxStackSize() - s.getCount());
     }
     return room >= amount;
+  }
+
+  public static boolean equip(ServerPlayer p, Visit v) {
+    int selected = p.getInventory().selected;
+    if (owns(p.getInventory().getItem(selected), p, v)) return true;
+    for (int i = 0; i < 36; i++)
+      if (owns(p.getInventory().getItem(i), p, v)) {
+        var old = p.getInventory().getItem(selected);
+        p.getInventory().setItem(selected, p.getInventory().getItem(i));
+        p.getInventory().setItem(i, old);
+        p.inventoryMenu.broadcastChanges();
+        return true;
+      }
+    return false;
   }
 }

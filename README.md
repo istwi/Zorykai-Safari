@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.0
+# Zorykai Safari 0.1.1
 
-[Baixar JAR](releases/v0.1.0/Shirokai-Safari-0.1.0.jar) · [Projeto completo ZIP](releases/v0.1.0/Shirokai-Safari-0.1.0-projeto-completo.zip) · [Validação](VALIDATION.md)
+[Baixar JAR](releases/v0.1.1/Shirokai-Safari-0.1.1.jar) · [Projeto completo ZIP](releases/v0.1.1/Shirokai-Safari-0.1.1-projeto-completo.zip) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -20,7 +20,7 @@ A primeira entrada inicia uma janela de 24 horas. O saldo diminui somente durant
 
 São aumentos de 20% sobre o cargo anterior, arredondados para segundos. Quem tiver vários grupos usa o maior saldo. Os grupos herdados e contextos do LuckPerms são consultados na criação do ciclo; o cargo não altera retroativamente a cota. É possível usar também `shirokai.safari.vip.<grupo>`. Tudo fica configurável.
 
-As 32 Pokébolas grátis são entregues uma única vez por ciclo. São Pokébolas reais do Cobblemon com nome e metadados de Safari, vinculadas ao jogador e ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada. Batalhas e captura usam o motor normal do Cobblemon. Não há uma nova fórmula de captura.
+As 32 Pokébolas grátis são entregues uma única vez por ciclo. São **Safari Balls reais do Cobblemon** (`cobblemon:safari_ball`), vinculadas ao jogador e ciclo. A versão 0.1.1 migra automaticamente o item antigo `poke_ball` para Safari Ball, preservando o saldo numérico e o ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada. Batalhas e captura usam o motor normal do Cobblemon. A captura usa as regras nativas da Safari Ball do Cobblemon, sem uma nova fórmula personalizada.
 
 ## Instalação e seleção
 
@@ -36,24 +36,27 @@ As 32 Pokébolas grátis são entregues uma única vez por ciclo. São Pokébola
 
 Criar a área não gera construções, dimensões, biomas nem uma lista própria de espécies: utiliza os spawns naturais já definidos para o local. A entrada exige inventário, armadura, mão secundária e cursor vazios, sobrevivência, ausência de batalha e veículo.
 
-O spawn padrão é 2× a frequência do timer natural do spawner de cada visitante. A área de cálculo desse spawner é recortada para o Safari. Não promete exatamente o dobro de Pokémon existentes: limites de população, bioma, horário e condições do Cobblemon continuam valendo. Não muda a taxa global do servidor.
+**Apenas selecionar/criar a área não aumenta o spawn.** O efeito exige uma visita ativa por `/safari entrar`, com o visitante dentro da área. O spawn padrão é 2× a frequência do timer natural do spawner de cada visitante. A área de cálculo desse spawner é recortada para o Safari. Não promete exatamente o dobro de Pokémon existentes: limites de população, bioma, horário e condições do Cobblemon continuam valendo. Não muda a taxa global do servidor.
 
 ## Comandos do jogador
 
 - `/safari`: menu de entrada, saldo, compra e saída.
 - `/safari entrar`: inicia ou retoma uma visita.
 - `/safari sair`: retorna à origem e pausa o saldo.
-- `/safari tempo`: informa saldo, renovação e bolas.
+- `/safari tempo`: informa saldo, renovação, bolas e evento.
+- `/safari bolas`: equipa uma pilha de Safari Balls na mão, preservando o item deslocado.
+- `/safari saldo`: consulta o saldo na moeda realmente usada pela loja.
+- `/safari eventos`: consulta efeitos e prazo do evento ativo.
 - `/safari comprar`: mostra o preço e solicita confirmação por 30 segundos.
 - `/safari comprar confirmar`: compra outro pacote de 32. Quantidade e preço são configuráveis. Mudança de preço/moeda invalida a confirmação anterior.
 
-Não há entrada paga; o preço é apenas do pacote adicional. É possível comprar mais de um pacote, desde que haja espaço e o limite de saldo de bolas seja respeitado.
+A compra abre um menu de confirmação e um botão clicável no chat, válidos por 30 segundos. Preço 0 concede um pacote gratuito sem enviar um débito de valor zero ao Impactor. Não há entrada paga; o preço é apenas do pacote adicional. É possível comprar mais de um pacote, desde que haja espaço e o limite de saldo de bolas seja respeitado.
 
 ## Proteções
 
 Durante uma visita ou retorno pendente, comandos externos são bloqueados, incluindo home, sethome, TPA, tpaccept, spawn, enderchest e wrappers como execute. As exceções são os comandos do Safari e `/login`, `/l` (incluindo as variantes com namespace easyauth), para não bloquear autenticação. Aliases externos não são autorizados automaticamente.
 
-Interações com blocos/containers, construção, troca de itens por cliques, coleta de itens no chão e troca de item segurado/cosmético dos Pokémon são bloqueadas. O inventário vanilla recusa adição de itens externos pela API normal; não é um isolamento contra outros mods que deliberadamente escrevam diretamente nos slots. Os Pokémon da equipe não são substituídos nem curados. Não há fome durante a visita.
+Interações com blocos/containers, construção, troca de itens por cliques e troca de item segurado/cosmético dos Pokémon continuam bloqueadas. **Coletar itens do chão é permitido**, inclusive drops de Pokémon. A autorização fica limitada à coleta real; outras adições externas pela API normal continuam bloqueadas. Os itens recolhidos permanecem no inventário ao sair e precisam ser guardados antes da próxima entrada. Bolas externas e consumíveis de batalha recolhidos não podem ser usados dentro do Safari; as Safari Balls emitidas pelo mod são equipadas automaticamente na compra. O inventário vanilla recusa adição de itens externos pela API normal; não é um isolamento contra outros mods que deliberadamente escrevam diretamente nos slots. Os Pokémon da equipe não são substituídos nem curados. Não há fome durante a visita.
 
 Quem tentar entrar fisicamente sem visita é retirado para a saída configurada. Um teleporte externo durante uma visita encerra a visita e processa o retorno no próximo ciclo de verificação, até aproximadamente um segundo. Administradores podem atuar fora da visita para construir e configurar a área.
 
@@ -61,6 +64,11 @@ Quem tentar entrar fisicamente sem visita é retirado para a saída configurada.
 
 Permissão `shirokai.safari.admin`; fallback OP nível 2 se não houver decisão explícita do LuckPerms. O console também pode administrar as operações sem posição pessoal.
 
+- `/safariadmin` ou `/safariadmin menu`: abre o painel administrativo de consulta, sem mudar configurações ao clicar. Mostra área, destinos, visitantes, evento e prazo, multiplicador base/temporário/total, amostras reais do timer e tentativas/Pokémon gerados nos últimos 60 segundos. As métricas são de execução, reiniciadas com o servidor. Sem visitante ativo pode não haver amostra. O painel é atualizado automaticamente e pode ser atualizado por clique; não ativa nem desativa eventos ao clicar nos indicadores. Os contadores de geração só aumentam quando uma entidade de spawn natural elegível entra no mundo; criar uma entidade que depois não é adicionada não conta.
+- `/safariadmin ajuda`: lista os comandos completos no chat com clique para preencher, incluindo saída e eventos.
+- `/safariadmin economia <jogador_online>`: consulta moeda, saldo e preço do pacote para diagnosticar pagamento recusado.
+- `/safariadmin moeda impactor:dollars`: escolhe uma moeda que exista no Impactor; não há troca automática de moeda em caso de saldo insuficiente.
+- `/safariadmin mensagens`: recarrega apenas as mensagens, inclusive com visitantes ativos. Um JSON inválido é rejeitado e as mensagens anteriores continuam em uso.
 - `/safariadmin modo on` e `/safariadmin modo off`: libera comandos na sessão administrativa, sem conceder OP ou permissões de outros mods. Desativa ao desconectar e revalida a permissão em cada comando. Não desliga as proteções de itens.
 - `/safariadmin tempo <jogador_online> <minutos>`: acrescenta tempo ao ciclo vigente.
 - `/safariadmin reload`: recarrega configuração validada; exige ausência de visitas e retornos pendentes.
@@ -78,9 +86,27 @@ Os eventos são persistidos e terminam pelo horário real, inclusive se o servid
 - `/safariadmin evento shiny 1 60`: por 60 minutos, dá uma chance adicional de 1% de tornar shiny cada spawn elegível. Não remove shinies naturais; a chance final é a composição com a chance natural, não exatamente 1%.
 - `/safariadmin evento forma cobblemon:rattata alolan 30 60`: por 60 minutos, 30% dos Rattata naturalmente gerados no Safari recebem a forma Alola. Aceita o nome da forma ou aspecto registrado. A espécie precisa aparecer naturalmente no local; o evento não cria uma espécie que não esteja na tabela. Formas inexistentes são recusadas.
 - `/safariadmin evento tempo 30 60`: acrescenta 30 minutos aos ciclos vigentes de todos e dá esse bônus aos novos ciclos iniciados durante os próximos 60 minutos. O mesmo ciclo não recebe o bônus novamente só por sair e entrar. Executar o comando de novo é uma nova concessão administrativa.
+- `/safariadmin evento status`: mostra se o evento está ativo, seus efeitos e o tempo restante. Ativar um evento produz confirmação e anúncio.
 - `/safariadmin evento parar`: encerra os efeitos temporários de spawn/shiny/forma e o bônus para novos ciclos. Tempo já concedido não é retirado.
 
 Os efeitos podem coexistir. Configurar um efeito redefine o prazo comum do evento; não há agendas independentes. Para encerrar só uma chance, configure-a como 0; para spawn, use 1.
+
+
+## Boss bar e anúncios editáveis
+
+Durante a visita, a boss bar mostra o saldo de tempo, as Safari Balls e o fator de spawn. Se houver evento ativo, a mesma barra passa a mostrar os efeitos e o tempo do evento; ao expirar, volta ao Safari normal. Se a janela diária terminar antes do saldo, o tempo disponível da barra considera esse limite.
+
+Com o Shirokai Raids 0.1.20-guard.1 instalado, as barras nativas da Raid são ocultadas **somente para o visitante**. Na saída, a barra atual da Raid é restaurada. Nenhuma participação na Raid ou barra de outro jogador é alterada. Essa integração visual é opcional: se uma versão futura mudar a estrutura do Raids, o Safari mantém as barras externas e registra o motivo, em vez de quebrar o servidor.
+
+Mensagens: `config/shirokai-safari-messages.json`, criado na primeira inicialização. Inclui `chatEnabled`, `titlesEnabled`, `audience` (`ALL` ou `SAFARI`), linhas de início/fim, título/subtítulo, tempos de exibição e os textos `safariBar`/`eventBar`.
+
+Aceita cores `&a`, `&6`, negrito `&l`, reset `&r` e hexadecimal `&#FFAA00`. Para degradê, use códigos hex por letra; tags MiniMessage não são interpretadas.
+
+Campos dos anúncios/evento: `{evento}`, `{duracao}`, `{tempo_evento}`, `{spawn}`, `{shiny}`, `{formas}`, `{bonus_tempo}`. A barra normal aceita também `{tempo}` e `{bolas}`. O público padrão dos anúncios de início/fim é todo o servidor; a boss bar aparece somente para visitantes.
+
+Exemplo de título: `"eventStartTitle": "&2&lEVENTO SAFARI"`. Após editar: `/safariadmin mensagens`.
+
+Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia NomeDoPlayer`. A mensagem informa o resultado do provedor (por exemplo, saldo insuficiente), a moeda, o saldo e o preço. Compare com a carteira que o servidor usa antes de trocar a moeda; o Safari não desconta de outra carteira por tentativa.
 
 ## Persistência, reinício e compras incertas
 
@@ -105,6 +131,7 @@ Não use `entry-mode authorized-only` na região do Safari: esse modo do Guard a
 /sg flag safari entry-mode normal
 /sg flag safari entry allow
 /sg flag safari blocked-commands unset
+/sg flag safari item-pickup allow
 /sg flag safari allowed-commands safari,login,l,safariadmin
 ```
 

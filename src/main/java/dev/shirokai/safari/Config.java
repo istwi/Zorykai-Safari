@@ -9,7 +9,7 @@ public final class Config {
       new LinkedHashMap<>(
           Map.of("magma", 7200L, "aqua", 8640L, "plasma", 10368L, "galactic", 12442L));
   public int ballBundle = 32;
-  public String ballItem = "cobblemon:poke_ball", currency = "impactor:dollars";
+  public String ballItem = "cobblemon:safari_ball", currency = "impactor:dollars";
   public java.math.BigDecimal bundlePrice = new java.math.BigDecimal("10000");
   public double spawnMultiplier = 2;
   public Area area;

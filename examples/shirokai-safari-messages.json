@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "chatEnabled": true,
+  "titlesEnabled": true,
+  "audience": "ALL",
+  "fadeInTicks": 10,
+  "stayTicks": 80,
+  "fadeOutTicks": 20,
+  "eventStartChat": [
+    "",
+    "&2&l✦ EVENTO SAFARI ✦",
+    "&f{evento}",
+    "&7Duração: &e{duracao}&7. Use &a/safari&7 para participar!",
+    ""
+  ],
+  "eventStartTitle": "&2&lEVENTO SAFARI",
+  "eventStartSubtitle": "&f{evento} &8• &e{duracao}",
+  "eventEndChat": [
+    "&2&lSAFARI &8» &7O evento terminou. Os efeitos normais voltaram."
+  ],
+  "eventEndTitle": "&2&lSAFARI",
+  "eventEndSubtitle": "&fEvento encerrado",
+  "safariBar": "&2&lSAFARI &8| &fTempo &e{tempo} &8| &fBolas &a{bolas} &8| &fSpawn &b{spawn}x",
+  "eventBar": "&d&lEVENTO SAFARI &8| &f{evento} &8| &e{tempo_evento}"
+}

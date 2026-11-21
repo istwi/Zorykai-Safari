@@ -26,6 +26,7 @@ public abstract class SpawnEventMixin {
             pos.getPosition().getX(),
             pos.getPosition().getY(),
             pos.getPosition().getZ())) return;
+    SpawnMetrics.prepared(entity);
     var event = m.data.event;
     if (!event.running(System.currentTimeMillis())) return;
     var pokemon = entity.getPokemon();
