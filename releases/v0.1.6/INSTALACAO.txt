@@ -1,0 +1,14 @@
+Safari 0.1.6
+
+Desligue o servidor e substitua somente o JAR Safari anterior; não deixe duplicados. Preserve config e world/data. O Clear1.0.1-Zorykai-Safari permanece igual. Requisitos: Minecraft1.21.1 Java21 Cobblemon1.8.3 Fabric Loader>=0.18.3 Fabric API>=0.116.7+1.21.1.
+
+NOVAS REGRAS:
+- Sair com tempo sobrando guarda as bolas.
+- Esgotar a cota ou a janela de24h apaga as bolas vinculadas restantes.
+- Adicionar tempo pelo bônus individual ou evento após esgotar concede novo pacote inicial (32 por padrão).
+- Se ainda havia tempo, o bônus mantém as bolas atuais, sem novo pacote.
+- Reentrar/reconectar/reiniciar não entrega outras32. A compra extra continua uma por ciclo de24h.
+- Pagamento terminado após esgotar a cota reserva o pacote pago para o próximo bônus ou ciclo, sem nova cobrança. Compras incertas continuam precisando de revisão administrativa.
+- Inventário cheio durante a entrega do bônus encaminha à saída e preserva as novas bolas no saldo para a reentrada depois de guardar itens.
+
+Ciclos já esgotados na atualização perdem as sobras antigas. Ciclos com tempo disponível mantêm seu saldo.

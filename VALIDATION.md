@@ -1,4 +1,14 @@
-# Validação — 0.1.5
+# Validação — 0.1.6
+
+36 testes unitários e 122 verificações em servidores dedicados passaram: 100 no fluxo Safari/Raids/Trainers, 16 com Impactor/LuckPerms reais e 6 em segundo processo reutilizando o checkpoint do primeiro. Evidências e SHA-256 em `validation/v0.1.6`. O Clear não mudou.
+
+As verificações novas cobrem remoção do saldo físico/persistido ao esgotar, bônus individual e evento concedendo um pacote inicial após esgotamento, reentrada mantendo o saldo, bônus com tempo sobrando sem pacote novo, manutenção do limite de compra e saída com saldo reservado em inventário cheio. A cota foi esgotada pela fixture; não se aguardou uma hora em tempo real. O segundo processo confirma que reinício não restaura bolas extras nem resolve automaticamente compra incerta.
+
+Testes unitários incluem crédito pago após esgotar, reserva até bônus/próximo ciclo, pagamento após bônus, expiração da janela, contabilização antes do bônus e roundtrip de persistência antes/depois de consumir a reserva. O débito real e compra única foram retestados com Impactor, mas não foi injetada falha física nem atraso artificial do provedor durante o débito; o caso de pagamento tardio é validado pelo modelo persistido.
+
+Testes com jogadores nativos simulados (e FakePlayer no fluxo econômico), captura de pacotes e APIs reais, sem cliente humano. Limites da validação visual, captura/batalha completa e integração Multiworld permanecem conforme histórico abaixo.
+
+# Histórico — 0.1.5
 
 28 testes unitários e 90 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.5`. Além do fluxo Safari/Raids/Trainers anterior, foram verificados os três únicos itens do menu principal (entrada, tempo e saída), ausência de ação nos antigos botões, confirmação de compra separada e tela de eventos separada com atualização. Os testes usam ServerPlayers nativos e captura de pacotes, sem cliente humano. Trainers0.3.2 real permanece no servidor de testes. O Clear não mudou e não houve nova rodada de economia/reinício nesta alteração visual.
 

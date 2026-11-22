@@ -78,6 +78,7 @@ public final class SafariMod implements ModInitializer {
             for (var e : data.players.entrySet()) {
               UUID.fromString(e.getKey());
               e.getValue().validate();
+              e.getValue().expireBalls(System.currentTimeMillis());
               if (e.getValue().active) {
                 e.getValue().active = false;
                 e.getValue().recovery = true;
@@ -118,6 +119,7 @@ public final class SafariMod implements ModInitializer {
           var p = handler.getPlayer();
           if (!healthy) return;
           var v = visit(p);
+          if (v.expireBalls(System.currentTimeMillis())) Balls.remove(p);
           if (v.active) {
             v.active = false;
             v.recovery = true;
@@ -133,8 +135,7 @@ public final class SafariMod implements ModInitializer {
           adminMode.remove(p.getUUID());
           if (healthy && active(p)) {
             var v = visit(p);
-            v.charge(System.currentTimeMillis());
-            v.balls = Balls.count(p, v);
+            captureVisit(p, System.currentTimeMillis());
             v.active = false;
             v.recovery = true;
             save();
@@ -464,11 +465,12 @@ public final class SafariMod implements ModInitializer {
                                                 if (v.cycleEnd <= System.currentTimeMillis())
                                                   throw new IllegalStateException(
                                                       "Jogador sem ciclo vigente");
-                                                v.budgetMillis =
-                                                    Math.addExact(
-                                                        v.budgetMillis,
-                                                        IntegerArgumentType.getInteger(c, "minutos")
-                                                            * 60000L);
+                                                extendVisit(
+                                                    p.getUUID(),
+                                                    v,
+                                                    IntegerArgumentType.getInteger(c, "minutos")
+                                                        * 60000L,
+                                                    System.currentTimeMillis());
                                                 save();
                                                 tell(
                                                     p, "Bônus de tempo adicionado ao ciclo atual.");
@@ -509,10 +511,14 @@ public final class SafariMod implements ModInitializer {
                                                 eventFor(
                                                     IntegerArgumentType.getInteger(
                                                         c, "duracao_minutos"));
-                                                for (var v : data.players.values())
-                                                  if (v.cycleEnd > System.currentTimeMillis())
-                                                    v.budgetMillis =
-                                                        Math.addExact(v.budgetMillis, bonus);
+                                                long now = System.currentTimeMillis();
+                                                for (var entry : data.players.entrySet())
+                                                  if (entry.getValue().cycleEnd > now)
+                                                    extendVisit(
+                                                        UUID.fromString(entry.getKey()),
+                                                        entry.getValue(),
+                                                        bonus,
+                                                        now);
                                                 data.event.bonusMillis = bonus;
                                                 save();
                                                 eventChanged(c.getSource());
@@ -866,13 +872,43 @@ public final class SafariMod implements ModInitializer {
     tell(p, "Bem-vindo! Saldo: " + format(v.remaining()) + ". Use /safari sair para pausar.");
   }
 
+  public void captureVisit(ServerPlayer p, long now) {
+    var v = visit(p);
+    v.charge(now);
+    v.balls = Balls.count(p, v);
+    if (v.expireBalls(now)) Balls.remove(p);
+  }
+
+  private void extendVisit(UUID id, Visit v, long bonus, long now) {
+    var p = server.getPlayerList().getPlayer(id);
+    if (p != null && v.active) captureVisit(p, now);
+    boolean fresh = v.extend(now, bonus, config.ballBundle);
+    // Persist before physical delivery. A reconnect reconstructs from this balance, never
+    // re-grants.
+    save();
+    if (fresh && p != null && v.active) {
+      Balls.remove(p);
+      if (!Balls.room(p, v.balls, config)) {
+        v.active = false;
+        v.recovery = true;
+        save();
+        recover(p);
+        tell(
+            p,
+            "Tempo extra e novas bolas reservados. Guarde os itens e entre novamente; seu"
+                + " inventário estava cheio.");
+        return;
+      }
+      Balls.give(p, v, v.balls, config);
+    }
+  }
+
   public void exit(ServerPlayer p) {
     requireHealthy();
     var v = visit(p);
     if (!v.active && !v.recovery) throw new IllegalStateException("Você não está no Safari");
     if (v.active) {
-      v.charge(System.currentTimeMillis());
-      v.balls = Balls.count(p, v);
+      captureVisit(p, System.currentTimeMillis());
     }
     v.active = false;
     v.recovery = true;
@@ -885,6 +921,7 @@ public final class SafariMod implements ModInitializer {
   private boolean recover(ServerPlayer p) {
     var v = visit(p);
     if (!v.recovery || v.origin == null) return false;
+    if (v.expireBalls(System.currentTimeMillis())) Balls.remove(p);
     try {
       var dest = v.origin;
       var w = world(dest.dimension());
@@ -1107,8 +1144,7 @@ public final class SafariMod implements ModInitializer {
     for (var p : List.copyOf(server.getPlayerList().getPlayers())) {
       var v = data.players.get(p.getUUID().toString());
       if (v != null && v.active) {
-        v.charge(now);
-        v.balls = Balls.count(p, v);
+        captureVisit(p, now);
         changed = true;
         if (!v.usable(now) || !inside(p)) {
           try {
@@ -1157,8 +1193,7 @@ public final class SafariMod implements ModInitializer {
     var m = INSTANCE;
     if (m != null && m.healthy && m.active(p)) {
       var v = m.visit(p);
-      v.charge(System.currentTimeMillis());
-      v.balls = Balls.count(p, v);
+      m.captureVisit(p, System.currentTimeMillis());
       Balls.remove(p);
       v.active = false;
       v.recovery = true;
@@ -1313,7 +1348,7 @@ public final class SafariMod implements ModInitializer {
     if (w == null || !safe(p, w, dest))
       throw new IllegalStateException("Destino indisponível ou inseguro");
     var v = visit(p);
-    v.charge(System.currentTimeMillis());
+    captureVisit(p, System.currentTimeMillis());
     if (!v.usable(System.currentTimeMillis()))
       throw new IllegalStateException("Tempo de Safari esgotado");
     save();

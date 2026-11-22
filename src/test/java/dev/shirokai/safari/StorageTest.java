@@ -67,4 +67,28 @@ class StorageTest {
     loaded.active = true;
     assertFalse(loaded.canBuy(3000));
   }
+
+  @Test
+  void restartPreservesBonusGrantAndReservedPaidEntitlement() throws Exception {
+    var state = new Storage.Data();
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.usedMillis = v.budgetMillis;
+    v.creditBundle(32, 2000);
+    state.players.put("player", v);
+    var path = dir.resolve("bonus.json");
+    Storage.write(path, state);
+    var restored = Storage.read(path, Storage.Data.class).players.get("player");
+    assertEquals(32, restored.reservedPaidBalls);
+    assertEquals(0, restored.balls);
+    restored.extend(3000, 60000, 32);
+    state.players.put("player", restored);
+    Storage.write(path, state);
+    var again = Storage.read(path, Storage.Data.class).players.get("player");
+    assertEquals(64, again.balls);
+    assertEquals(0, again.reservedPaidBalls);
+    assertFalse(again.extend(4000, 60000, 32));
+    assertEquals(64, again.balls);
+    assertTrue(again.bundlePurchased);
+  }
 }

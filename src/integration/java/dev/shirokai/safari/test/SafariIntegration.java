@@ -489,7 +489,50 @@ public final class SafariIntegration implements ModInitializer {
     tick.setAccessible(true);
     tick.invoke(m);
     check(!m.locked(p) && p.getX() == 100.5, "exhausted quota automatically returns visitor");
-    v.budgetMillis += 60000;
+    check(
+        v.balls == 0 && Balls.count(p, v) == 0,
+        "exhaustion removes physical and persisted unspent balls");
+    var bonusCommands = s.getCommands().getDispatcher();
+    var bonusSource = p.createCommandSourceStack().withPermission(4);
+    v.bundlePurchased = true;
+    check(
+        bonusCommands.execute("safariadmin tempo SafariTest 1", bonusSource) == 1 && v.balls == 32,
+        "individual time bonus grants a fresh starter after exhaustion");
+    check(v.bundlePurchased, "time bonus does not reset the daily purchase allowance");
+    m.enter(p);
+    check(Balls.count(p, v) == 32, "bonus entry delivers exactly one starter bundle");
+    p.getInventory().getItem(0).shrink(5);
+    m.exit(p);
+    m.enter(p);
+    check(
+        Balls.count(p, v) == 27, "bonus reentry preserves remaining balls without a second grant");
+    bonusCommands.execute("safariadmin tempo SafariTest 1", bonusSource);
+    check(
+        Balls.count(p, v) == 27 && v.balls == 27,
+        "bonus before exhaustion does not replace or add balls");
+    v.usedMillis = v.budgetMillis;
+    check(
+        bonusCommands.execute("safariadmin evento tempo 1 5", bonusSource) == 1
+            && v.balls == 32
+            && Balls.count(p, v) == 32,
+        "time event charges active visit and replaces exhausted balls with a fresh starter");
+    bonusCommands.execute("safariadmin evento tempo 1 5", bonusSource);
+    check(
+        Balls.count(p, v) == 32 && v.bundlePurchased,
+        "repeated time event with quota remaining grants no extra balls or purchase");
+    v.usedMillis = v.budgetMillis;
+    for (int i = 0; i < 36; i++) p.getInventory().setItem(i, new ItemStack(Items.COBBLESTONE, 64));
+    bonusCommands.execute("safariadmin tempo SafariTest 1", bonusSource);
+    check(
+        !m.locked(p) && v.balls == 32 && Balls.count(p, v) == 0,
+        "full inventory returns visitor while preserving new bonus balls as balance");
+    p.getInventory().clearContent();
+    m.enter(p);
+    check(
+        Balls.count(p, v) == 32,
+        "reserved bonus balls are delivered once after inventory is cleared");
+    v.bundlePurchased = false;
+    m.exit(p);
     m.enter(p);
     p.setPos(102, 200, 102);
     tick.invoke(m);

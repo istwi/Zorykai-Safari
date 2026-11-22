@@ -1,3 +1,10 @@
+# 0.1.6
+
+- Ao esgotar a cota ou a janela diária, as bolas restantes expiram, inclusive se o retorno falhar.
+- Bônus individual/evento de tempo após esgotamento concede novo pacote inicial; bônus com tempo restante não duplica bolas.
+- Ciclo de 24h e limite de compra são mantidos. Pacotes pagos ainda não entregues ficam reservados se o pagamento terminar após o esgotamento.
+- Entrega de bônus persistida antes da reconstrução física; inventário cheio preserva o saldo e encaminha à saída.
+
 # 0.1.5
 
 - Menu `/safari` reduzido a entrada/continuação, tempo/renovação e saída.

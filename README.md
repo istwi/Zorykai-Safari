@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.5
+# Zorykai Safari 0.1.6
 
-[Baixar Safari + Clear ZIP](releases/v0.1.5/Zorykai-Safari-0.1.5-e-Clear.zip) · [JAR Safari](releases/v0.1.5/Shirokai-Safari-0.1.5.jar) · [JAR Clear](releases/v0.1.5/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[Baixar Safari + Clear ZIP](releases/v0.1.6/Zorykai-Safari-0.1.6-e-Clear.zip) · [JAR Safari](releases/v0.1.6/Shirokai-Safari-0.1.6.jar) · [JAR Clear](releases/v0.1.6/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -20,7 +20,7 @@ A primeira entrada inicia uma janela de 24 horas. O saldo diminui somente durant
 
 São aumentos de 20% sobre o cargo anterior, arredondados para segundos. Quem tiver vários grupos usa o maior saldo. Os grupos herdados e contextos do LuckPerms são consultados na criação do ciclo; o cargo não altera retroativamente a cota. É possível usar também `shirokai.safari.vip.<grupo>`. Tudo fica configurável.
 
-As 32 Pokébolas grátis são entregues uma única vez por ciclo. São **Safari Balls reais do Cobblemon** (`cobblemon:safari_ball`), vinculadas ao jogador e ciclo. A atualização migra automaticamente o item antigo `poke_ball` para Safari Ball, preservando o saldo numérico e o ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada. Batalhas e captura usam o motor normal do Cobblemon. A captura usa as regras nativas da Safari Ball do Cobblemon, sem uma nova fórmula personalizada.
+As 32 Safari Balls iniciais são entregues no início do ciclo. Se toda a cota de tempo acabar, as sobras são apagadas; receber tempo extra depois disso concede um novo pacote inicial uma única vez para aquele saldo extra. São **Safari Balls reais do Cobblemon** (`cobblemon:safari_ball`), vinculadas ao jogador e ciclo. A atualização migra automaticamente o item antigo `poke_ball` para Safari Ball, preservando o saldo numérico e o ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada enquanto houver tempo disponível no ciclo. Batalhas e captura usam o motor normal do Cobblemon. A captura usa as regras nativas da Safari Ball do Cobblemon, sem uma nova fórmula personalizada.
 
 ## Instalação e seleção
 
@@ -110,7 +110,7 @@ Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia Nom
 
 ## Limpeza independente na área/dimensão do Safari
 
-Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.5 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.6 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
 
 A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
 
@@ -213,3 +213,15 @@ Exemplo de NPC informativo adicional:
 ```
 
 Essas telas exigem uma visita ativa; os limites de tempo, preço e compra diária são mantidos. Não é necessário recriar NPCs de guia/loja já configurados. O Clear permanece igual.
+
+## Expiração das bolas e tempo extra (0.1.6)
+
+Quando a cota de tempo se esgota, ou a janela diária termina, as Safari Balls vinculadas restantes são removidas do inventário e do saldo. Os demais itens coletados continuam preservados. Sair voluntariamente com tempo disponível mantém o saldo de bolas.
+
+`/safariadmin tempo <jogador> <minutos>` e `/safariadmin evento tempo <bonus_minutos> <duracao_minutos>` concedem um novo pacote inicial (32 por padrão, `ballBundle`) somente aos ciclos vigentes cuja cota estava esgotada. O bônus continua no mesmo ciclo diário. Quem ainda tem tempo mantém as bolas atuais, sem substituição nem pacote extra. Sair, voltar, reconectar ou reiniciar não concede outro pacote; o saldo e a cota são persistidos antes da entrega.
+
+A compra adicional permanece uma por ciclo de 24 horas. O tempo extra não libera uma segunda compra. Se um pagamento terminar depois de esgotar a cota, o pacote pago ainda não entregue fica reservado em `reservedPaidBalls` até receber tempo extra ou iniciar o próximo ciclo diário. Ele é entregue uma única vez, somado ao pacote inicial, e continua consumindo a compra daquele ciclo de entrega. Pagamentos após o fim da janela mantêm o fluxo anterior de `nextCycleBundle`. Compras incertas continuam exigindo revisão administrativa.
+
+Caso um bônus renove as bolas durante uma visita e não haja espaço, o saldo novo fica salvo e o jogador é encaminhado à saída (ou ao retorno pendente se o destino estiver indisponível). Depois de guardar os itens, ele pode entrar para receber esse saldo, sem nova concessão ou cobrança.
+
+Na atualização, ciclos já esgotados perdem o saldo antigo de bolas; ciclos com tempo restante preservam seu saldo. O Clear permanece igual.

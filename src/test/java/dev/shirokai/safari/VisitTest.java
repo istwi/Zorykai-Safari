@@ -172,4 +172,92 @@ class VisitTest {
     assertFalse(v.canBuy(end + 3));
     assertEquals(0, v.nextCycleBundle);
   }
+
+  @Test
+  void exhaustedBallsExpireAndBonusGrantsOnce() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.balls = 90;
+    v.usedMillis = v.budgetMillis;
+    v.bundlePurchased = true;
+    assertTrue(v.expireBalls(2000));
+    assertEquals(0, v.balls);
+    assertTrue(v.extend(3000, 60000, 32));
+    assertEquals(32, v.balls);
+    v.balls = 17;
+    assertFalse(v.extend(4000, 60000, 32));
+    assertEquals(17, v.balls);
+    assertTrue(v.bundlePurchased);
+  }
+
+  @Test
+  void bonusWithoutExhaustionKeepsExistingBalls() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.balls = 12;
+    assertFalse(v.extend(2000, 60000, 32));
+    assertEquals(12, v.balls);
+    assertEquals(3660000, v.remaining());
+  }
+
+  @Test
+  void bonusChargesActiveTimeBeforeCheckingExhaustion() {
+    var v = new Visit();
+    v.begin(1000, 86400, 1, 32);
+    v.active = true;
+    v.lastCharge = 1000;
+    v.balls = 95;
+    assertTrue(v.extend(3000, 60000, 32));
+    assertEquals(32, v.balls);
+    assertEquals(60000, v.remaining());
+  }
+
+  @Test
+  void expiredDailyWindowAlsoRemovesUnspentBalls() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    assertTrue(v.expireBalls(v.cycleEnd));
+    assertEquals(0, v.balls);
+    assertThrows(IllegalArgumentException.class, () -> v.extend(v.cycleEnd, 60000, 32));
+  }
+
+  @Test
+  void paymentAfterExhaustionIsReservedAndDeliveredWithBonusOnce() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.usedMillis = v.budgetMillis;
+    v.creditBundle(32, 2000);
+    assertEquals(0, v.balls);
+    assertEquals(32, v.reservedPaidBalls);
+    assertTrue(v.bundlePurchased);
+    v.extend(3000, 60000, 32);
+    assertEquals(64, v.balls);
+    assertEquals(0, v.reservedPaidBalls);
+    v.extend(4000, 60000, 32);
+    assertEquals(64, v.balls);
+  }
+
+  @Test
+  void reservedPaymentCanWaitUntilNextDailyCycle() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.usedMillis = v.budgetMillis;
+    v.creditBundle(32, 2000);
+    v.begin(v.cycleEnd, 86400, 3600, 32);
+    assertEquals(64, v.balls);
+    assertTrue(v.bundlePurchased);
+    assertEquals(0, v.reservedPaidBalls);
+  }
+
+  @Test
+  void paymentArrivingAfterBonusAddsToNewBalanceWithoutAnotherStarter() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.usedMillis = v.budgetMillis;
+    v.extend(2000, 60000, 32);
+    v.creditBundle(32, 3000);
+    assertEquals(64, v.balls);
+    v.extend(4000, 60000, 32);
+    assertEquals(64, v.balls);
+  }
 }

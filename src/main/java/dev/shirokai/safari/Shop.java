@@ -23,6 +23,7 @@ public final class Shop {
 
   public void buy(ServerPlayer p) {
     var v = mod.visit(p);
+    if (mod.active(p)) mod.captureVisit(p, System.currentTimeMillis());
     if (!mod.active(p) || !v.usable(System.currentTimeMillis()))
       throw new IllegalStateException("Entre no Safari primeiro");
     if (v.bundlePurchased)
@@ -135,11 +136,18 @@ public final class Shop {
                       // from this balance.
                       boolean online =
                           mod.server.getPlayerList().getPlayer(p.getUUID()) == p && mod.active(p);
-                      if (online) v.balls = Balls.count(p, v);
+                      if (online) mod.captureVisit(p, System.currentTimeMillis());
                       v.creditBundle(amount, System.currentTimeMillis());
                       v.purchase = null;
                       v.purchaseAmount = 0;
                       mod.save();
+                      if (v.reservedPaidBalls > 0) {
+                        mod.tell(
+                            p,
+                            "Seu tempo terminou durante o pagamento. O pacote pago está reservado"
+                                + " para quando receber tempo extra ou iniciar o próximo ciclo.");
+                        return;
+                      }
                       if (v.nextCycleBundle > 0) {
                         mod.tell(
                             p,
