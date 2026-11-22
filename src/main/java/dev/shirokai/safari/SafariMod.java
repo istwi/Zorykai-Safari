@@ -2,6 +2,7 @@ package dev.shirokai.safari;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.battles.BattleRegistry;
+import com.cobblemon.mod.common.entity.npc.NPCEntity;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.mojang.brigadier.arguments.*;
 import java.nio.file.*;
@@ -169,7 +170,7 @@ public final class SafariMod implements ModInitializer {
             p instanceof ServerPlayer sp
                     && locked(sp)
                     && !(e instanceof PokemonEntity)
-                    && !TrainersBridge.safariNpc(e)
+                    && !(e instanceof NPCEntity)
                 ? InteractionResult.FAIL
                 : InteractionResult.PASS);
     AttackEntityCallback.EVENT.register(

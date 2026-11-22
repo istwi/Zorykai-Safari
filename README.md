@@ -1,6 +1,6 @@
-# Zorykai Safari 0.2.1
+# Zorykai Safari 0.2.2
 
-[JAR Safari 0.2.1](releases/v0.2.1/Shirokai-Safari-0.2.1.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[JAR Safari 0.2.2](releases/v0.2.2/Shirokai-Safari-0.2.2.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -110,7 +110,7 @@ Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia Nom
 
 ## Limpeza independente na área/dimensão do Safari
 
-Instale o **Clear adaptado incluído no pacote 0.2.0**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.2.1 deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+Instale o **Clear adaptado incluído no pacote 0.2.0**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.2.2 deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
 
 A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
 
@@ -195,7 +195,7 @@ Com Shirokai Trainers 0.3.5, crie NPCs independentes no hub interno do Safari e 
 
 Para destino direto, configure `player safari regiao deserto`. Não inclua `/` antes de `safari` no argumento do NPC. Se estiver visitando o Safari durante a configuração, use `/safariadmin modo on` antes e `off` depois para liberar seus comandos administrativos. O jogador comum não recebe OP.
 
-O Safari permite a interação com NPCs de batalha indexados pelo Trainers e com NPCs de comando que usem as ações públicas de compra, regiões/destino, eventos, missões e loja de pontos, no executor `player`. NPCs desconhecidos e outras ações continuam bloqueados. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
+O Safari permite interagir com NPCs nativos do Cobblemon durante a visita, inclusive os vinculados ao Trainers. O próprio mod do NPC continua responsável pelo menu, diálogo, comando ou batalha. Ataques contra NPCs e interações com entidades comuns continuam bloqueados. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
 
 Ao usar `/safariadmin delete`, os destinos são removidos junto com a área/entrada. Ao substituir a área com `criar`, destinos fora da nova seleção são descartados. Mundo e dados dos jogadores são preservados.
 

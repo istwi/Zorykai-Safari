@@ -1,0 +1,11 @@
+Safari 0.2.2
+
+Desligue o servidor e substitua o JAR anterior do Safari. Não deixe duas versões na pasta mods.
+Preserve config e dados do mundo. O Clear 1.0.1 adaptado continua igual e não precisa ser substituído.
+
+Correção desta versão:
+- Permite clicar em NPCs nativos do Cobblemon dentro do Safari, inclusive NPCs do Shirokai Trainers.
+- O mod responsável pelo NPC continua controlando menu, diálogo, comando e batalha.
+- Ataques contra NPCs e interações com entidades comuns continuam bloqueados.
+
+Compatibilidade: Minecraft 1.21.1, Java 21, Cobblemon 1.8.3 e Fabric.
