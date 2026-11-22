@@ -9,7 +9,14 @@ import net.minecraft.world.item.*;
 
 public final class SafariMenu extends AbstractContainerMenu {
   private final ServerPlayerRef ref;
-  private final boolean confirmation;
+
+  public enum Screen {
+    MAIN,
+    PURCHASE,
+    EVENTS
+  }
+
+  private final Screen screen;
 
   private record ServerPlayerRef(net.minecraft.server.level.ServerPlayer player, SafariMod mod) {}
 
@@ -18,16 +25,20 @@ public final class SafariMenu extends AbstractContainerMenu {
   }
 
   public SafariMenu(int id, Inventory inventory, SafariMod mod, boolean confirmation) {
+    this(id, inventory, mod, confirmation ? Screen.PURCHASE : Screen.MAIN);
+  }
+
+  public SafariMenu(int id, Inventory inventory, SafariMod mod, Screen screen) {
     super(MenuType.GENERIC_9x3, id);
     ref = new ServerPlayerRef((net.minecraft.server.level.ServerPlayer) inventory.player, mod);
-    this.confirmation = confirmation;
+    this.screen = screen;
     var chest = new SimpleContainer(27);
     for (int i = 0; i < 27; i++) addSlot(new Slot(chest, i, 8 + (i % 9) * 18, 18 + (i / 9) * 18));
     for (int row = 0; row < 3; row++)
       for (int col = 0; col < 9; col++)
         addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 85 + row * 18));
     for (int col = 0; col < 9; col++) addSlot(new Slot(inventory, col, 8 + col * 18, 143));
-    if (confirmation) {
+    if (screen == Screen.PURCHASE) {
       button(
           chest,
           11,
@@ -37,6 +48,21 @@ public final class SafariMenu extends AbstractContainerMenu {
               + " Safari Balls por $"
               + mod.config.bundlePrice.toPlainString());
       button(chest, 15, Items.RED_STAINED_GLASS_PANE, "Cancelar compra");
+      return;
+    }
+    if (screen == Screen.EVENTS) {
+      button(chest, 13, Items.NETHER_STAR, "Eventos do Safari");
+      chest
+          .getItem(13)
+          .set(
+              DataComponents.LORE,
+              new net.minecraft.world.item.component.ItemLore(
+                  java.util.Arrays.stream(
+                          mod.eventDescription().split(java.util.regex.Pattern.quote(" | ")))
+                      .map(Component::literal)
+                      .map(c -> (Component) c)
+                      .toList()));
+      button(chest, 22, Items.ARROW, "Atualizar informações");
       return;
     }
     var v = mod.visit(ref.player);
@@ -49,19 +75,7 @@ public final class SafariMenu extends AbstractContainerMenu {
             + mod.format(v.remaining())
             + " | renovação em "
             + mod.format(Math.max(0, v.cycleEnd - System.currentTimeMillis())));
-    button(
-        chest,
-        14,
-        Items.EMERALD,
-        v.bundlePurchased
-            ? "Pacote já comprado • renova com o próximo Safari"
-            : "Comprar "
-                + mod.config.ballBundle
-                + " bolas: $"
-                + mod.config.bundlePrice.toPlainString());
     button(chest, 16, Items.OAK_DOOR, "Sair e guardar o saldo");
-    button(chest, 20, Items.FILLED_MAP, "Visitar regiões");
-    button(chest, 22, Items.NETHER_STAR, "Eventos: clique para consultar");
   }
 
   private void button(SimpleContainer c, int slot, Item item, String text) {
@@ -74,7 +88,7 @@ public final class SafariMenu extends AbstractContainerMenu {
   public void clicked(int slot, int button, ClickType type, Player player) {
     if (player != ref.player || !stillValid(player)) return;
     if (type != ClickType.PICKUP || button != 0) return;
-    if (confirmation) {
+    if (screen == Screen.PURCHASE) {
       if (slot != 11 && slot != 15) return;
       SafariMod.closeMenuIfOpen(ref.player);
       if (slot == 11)
@@ -85,14 +99,21 @@ public final class SafariMenu extends AbstractContainerMenu {
         }
       return;
     }
-    if (slot != 10 && slot != 14 && slot != 16 && slot != 20 && slot != 22) return;
+    if (screen == Screen.EVENTS) {
+      if (slot == 22) {
+        try {
+          ref.mod.eventMenu(ref.player);
+        } catch (RuntimeException e) {
+          ref.mod.tell(ref.player, e.getMessage());
+        }
+      }
+      return;
+    }
+    if (slot != 10 && slot != 16) return;
     try {
       switch (slot) {
         case 10 -> ref.mod.enter(ref.player);
-        case 14 -> ref.mod.confirmBuy(ref.player);
         case 16 -> ref.mod.exit(ref.player);
-        case 20 -> ref.mod.regionMenu(ref.player);
-        case 22 -> ref.mod.eventStatus(ref.player.createCommandSourceStack());
         default -> {}
       }
     } catch (RuntimeException e) {

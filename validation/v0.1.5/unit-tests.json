@@ -1,0 +1,30 @@
+[
+  {
+    "name": "dev.shirokai.safari.RegionsTest",
+    "tests": "5",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.shirokai.safari.StorageTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.shirokai.safari.MessagesTest",
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.shirokai.safari.VisitTest",
+    "tests": "16",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

@@ -1,3 +1,9 @@
+# 0.1.5
+
+- Menu `/safari` reduzido a entrada/continuação, tempo/renovação e saída.
+- Compra e regiões ficam em menus separados, sem botões no principal.
+- `/safari eventos` abre uma tela própria de consulta/atualização, permitida no NPC informativo do Trainers.
+
 # 0.1.4
 
 - Destinos administrativos persistidos com `/safariadmin regiao criar|remover|listar`.

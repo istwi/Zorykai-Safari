@@ -231,7 +231,11 @@ public final class SafariMod implements ModInitializer {
                                       c.getSource(), c.getSource().getPlayerOrException()))));
           root.then(
               Commands.literal("eventos")
-                  .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource()))));
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> eventMenu(c.getSource().getPlayerOrException()))));
           root.then(
               Commands.literal("bolas")
                   .executes(
@@ -1266,6 +1270,17 @@ public final class SafariMod implements ModInitializer {
         && Permissions.has(p, "shirokai.safari.use", true)
         && p.isAlive()
         && !p.isSpectator();
+  }
+
+  public void eventMenu(ServerPlayer p) {
+    requireHealthy();
+    if (!canTravel(p))
+      throw new IllegalStateException("Consulte os eventos durante uma visita ativa ao Safari");
+    p.openMenu(
+        new SimpleMenuProvider(
+            (id, inventory, player) ->
+                new SafariMenu(id, inventory, this, SafariMenu.Screen.EVENTS),
+            Component.literal("Safari • Eventos")));
   }
 
   public void regionMenu(ServerPlayer p) {

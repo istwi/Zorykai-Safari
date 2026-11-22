@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.4
+# Zorykai Safari 0.1.5
 
-[Baixar Safari + Clear ZIP](releases/v0.1.4/Zorykai-Safari-0.1.4-e-Clear.zip) · [JAR Safari](releases/v0.1.4/Shirokai-Safari-0.1.4.jar) · [JAR Clear](releases/v0.1.4/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[Baixar Safari + Clear ZIP](releases/v0.1.5/Zorykai-Safari-0.1.5-e-Clear.zip) · [JAR Safari](releases/v0.1.5/Shirokai-Safari-0.1.5.jar) · [JAR Clear](releases/v0.1.5/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -40,7 +40,7 @@ Criar a área não gera construções, dimensões, biomas nem uma lista própria
 
 ## Comandos do jogador
 
-- `/safari`: menu de entrada, saldo, compra e saída.
+- `/safari`: somente entrada/continuação, tempo disponível/renovação e saída.
 - `/safari entrar`: inicia ou retoma uma visita.
 - `/safari sair`: retorna à origem e pausa o saldo.
 - `/safari tempo`: informa saldo, renovação, bolas e evento.
@@ -110,7 +110,7 @@ Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia Nom
 
 ## Limpeza independente na área/dimensão do Safari
 
-Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.4 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.5 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
 
 A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
 
@@ -182,7 +182,7 @@ Depois da edição, selecione `/safariadmin pos1` e `/safariadmin pos2`, use `/s
 
 Dentro de cada destino seguro, use `/safariadmin regiao criar floresta` (ou `deserto`, `montanha`). Os nomes aceitam letras minúsculas, números, `_` e `-`, até 32 caracteres. Há até 21 destinos. `/safariadmin regiao listar` consulta os nomes; `/safariadmin regiao remover floresta` remove o destino para recriar em outra posição. Os destinos ficam em `regions` no JSON principal, incluindo dimensão e direção do olhar. Configurações antigas recebem o mapa vazio, sem reset de jogadores.
 
-`/safari regioes` abre o menu; `/safari regiao floresta` teleporta diretamente. Há também um botão no menu `/safari`. Exigem visita ativa, presença dentro da área e tempo disponível. O destino é revalidado em cada clique, inclusive colisão, chão, borda e dimensão. Batalha/veículo impedem teleporte. Viajar mantém origem de retorno, ciclo, cota, bolas e compra; o relógio continua correndo.
+`/safari regioes` abre o menu; `/safari regiao floresta` teleporta diretamente. As regiões ficam em seu próprio menu, usado pelo NPC guia. Exigem visita ativa, presença dentro da área e tempo disponível. O destino é revalidado em cada clique, inclusive colisão, chão, borda e dimensão. Batalha/veículo impedem teleporte. Viajar mantém origem de retorno, ciclo, cota, bolas e compra; o relógio continua correndo.
 
 Com Shirokai Trainers 0.3.2, crie NPCs independentes no hub interno do Safari e configure ações como jogador:
 
@@ -195,6 +195,21 @@ Com Shirokai Trainers 0.3.2, crie NPCs independentes no hub interno do Safari e 
 
 Para destino direto, configure `player safari regiao deserto`. Não inclua `/` antes de `safari` no argumento do NPC. Se estiver visitando o Safari durante a configuração, use `/safariadmin modo on` antes e `off` depois para liberar seus comandos administrativos. O jogador comum não recebe OP.
 
-O Safari permite a interação com NPCs indexados pelo Trainers com essas três ações públicas, no executor `player`. NPCs de batalha e outras ações não recebem essa liberação. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
+O Safari permite a interação com NPCs indexados pelo Trainers com as ações públicas de compra, regiões/destino e eventos, no executor `player`. NPCs de batalha e outras ações não recebem essa liberação. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
 
 Ao usar `/safariadmin delete`, os destinos são removidos junto com a área/entrada. Ao substituir a área com `criar`, destinos fora da nova seleção são descartados. Mundo e dados dos jogadores são preservados.
+
+## Menus separados (0.1.5)
+
+`/safari` mostra somente **Entrar/continuar**, **Tempo/renovação** e **Sair**. Não possui atalhos de compra, regiões ou eventos.
+
+Os NPCs usam comandos específicos para abrir suas telas: `player safari comprar` (confirmação de compra), `player safari regioes` (destinos) e `player safari eventos` (informações do evento, com botão para atualizar). O menu de regiões tem um botão para retornar ao principal. Eventos administrativos continuam com os comandos de administração existentes.
+
+Exemplo de NPC informativo adicional:
+
+```mcfunction
+/traineradmin npc create-command safari_eventos
+/traineradmin npc command safari_eventos player safari eventos
+```
+
+Essas telas exigem uma visita ativa; os limites de tempo, preço e compra diária são mantidos. Não é necessário recriar NPCs de guia/loja já configurados. O Clear permanece igual.

@@ -261,6 +261,38 @@ public final class SafariIntegration implements ModInitializer {
     var menu = p.containerMenu;
     check(menu instanceof SafariMenu, "native ServerPlayer opens actual Safari menu");
     check(menu.slots.size() == 63, "native menu has 27 protected slots and player inventory");
+    final var initialMenu = menu;
+    check(
+        java.util.stream.IntStream.range(0, 27)
+                    .filter(i -> !initialMenu.getSlot(i).getItem().isEmpty())
+                    .count()
+                == 3
+            && !menu.getSlot(10).getItem().isEmpty()
+            && !menu.getSlot(12).getItem().isEmpty()
+            && !menu.getSlot(16).getItem().isEmpty(),
+        "main menu contains only entry, time and exit");
+    for (int oldSlot : new int[] {14, 20, 22}) menu.clicked(oldSlot, 0, ClickType.PICKUP, p);
+    check(
+        p.containerMenu == menu,
+        "removed main-menu actions cannot open purchase, regions or events");
+    m.confirmBuy(p);
+    check(
+        p.containerMenu instanceof SafariMenu
+            && !p.containerMenu.getSlot(11).getItem().isEmpty()
+            && !p.containerMenu.getSlot(15).getItem().isEmpty(),
+        "purchase remains a separate confirmation menu");
+    m.eventMenu(p);
+    check(
+        p.containerMenu instanceof SafariMenu
+            && !p.containerMenu.getSlot(13).getItem().isEmpty()
+            && p.containerMenu.getSlot(11).getItem().isEmpty(),
+        "events have a dedicated information menu");
+    p.containerMenu.clicked(22, 0, ClickType.PICKUP, p);
+    check(
+        !p.containerMenu.getSlot(13).getItem().isEmpty(),
+        "event menu can refresh without returning to main menu");
+    m.menu(p);
+    menu = p.containerMenu;
     int before = p.getInventory().getItem(0).getCount();
     menu.clicked(27, 0, ClickType.QUICK_MOVE, p);
     check(p.getInventory().getItem(0).getCount() == before, "menu cannot transfer inventory");

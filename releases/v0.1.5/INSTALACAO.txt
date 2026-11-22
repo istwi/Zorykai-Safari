@@ -1,0 +1,5 @@
+Safari 0.1.5: desligue o servidor e substitua o JAR Safari anterior. Não deixe duplicados. Preserve config/dados. O Clear continua igual à versão1.0.1-Zorykai-Safari. Requisitos: Minecraft1.21.1 Java21 Cobblemon1.8.3 Fabric Loader>=0.18.3 Fabric API>=0.116.7+1.21.1.
+
+/safari agora mostra apenas entrar/continuar, tempo/renovação e sair. Os NPCs guia e loja existentes continuam com safari regioes e safari comprar. Para NPC informativo, use player safari eventos, como no exemplo incluído. Trainers0.3.2 foi usado nos testes, não incluído nem alterado.
+
+Bônus de tempo aumenta o ciclo atual; não renova bolas nem compra adicional. O ciclo seguinte renova conforme o relógio de24h contado da primeira entrada.

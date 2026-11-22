@@ -1,4 +1,8 @@
-# Validação — 0.1.4
+# Validação — 0.1.5
+
+28 testes unitários e 90 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.5`. Além do fluxo Safari/Raids/Trainers anterior, foram verificados os três únicos itens do menu principal (entrada, tempo e saída), ausência de ação nos antigos botões, confirmação de compra separada e tela de eventos separada com atualização. Os testes usam ServerPlayers nativos e captura de pacotes, sem cliente humano. Trainers0.3.2 real permanece no servidor de testes. O Clear não mudou e não houve nova rodada de economia/reinício nesta alteração visual.
+
+# Histórico — 0.1.4
 
 28 testes unitários e 85 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.4`, incluindo hash do Trainers 0.3.2 real usado, sem modificações. As novas verificações incluem criação/duplicidade de região, teleporte por comando e menu, recusa fora de visita, obstrução de destino, menu preservado no tick, shift-click sem extração de ícones e preservação de origem/ciclo/bolas/compra.
 
