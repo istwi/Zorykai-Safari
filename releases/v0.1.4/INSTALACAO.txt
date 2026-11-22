@@ -1,0 +1,3 @@
+Safari 0.1.4: desligue o servidor e substitua somente o JAR Safari anterior. Não deixe duplicados. Preserve config e dados. O Clear 1.0.1-Zorykai-Safari permanece igual; se já instalado, não precisa trocá-lo. Requisitos: Minecraft1.21.1 Java21 Cobblemon1.8.3 Fabric Loader>=0.18.3 Fabric API>=0.116.7+1.21.1.
+
+Para NPCs, instale Shirokai Trainers com NPCs de comandos (testado0.3.2) e siga safari-npcs.txt. O Trainers não está incluído nem foi modificado. Regiões e menu funcionam sem ele por comandos.

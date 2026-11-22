@@ -1,3 +1,10 @@
+# 0.1.4
+
+- Destinos administrativos persistidos com `/safariadmin regiao criar|remover|listar`.
+- Menu `/safari regioes`, botão no menu principal e teleporte `/safari regiao <nome>` dentro da visita ativa, mantendo ciclo e saldos.
+- Integração opcional com NPCs de comandos do Trainers: guia, vendedor e destino direto; executor player e ações Safari específicas.
+- Validação de destinos seguros e contenção na área, com limpeza de destinos ao deletar/redefinir área.
+
 # 0.1.3
 
 - `/safariadmin delete` remove área e entrada persistidas para edição, preservando mundo, lobby e dados dos jogadores.

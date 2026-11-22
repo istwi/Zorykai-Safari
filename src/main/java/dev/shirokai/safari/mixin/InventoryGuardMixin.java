@@ -21,6 +21,7 @@ public abstract class InventoryGuardMixin {
   private void safariClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
     if (!safari$locked()
         || (player.containerMenu instanceof SafariMenu
+            || player.containerMenu instanceof RegionsMenu
             || player.containerMenu instanceof AdminMenu)) return;
     ci.cancel();
     player.containerMenu.sendAllDataToRemote();

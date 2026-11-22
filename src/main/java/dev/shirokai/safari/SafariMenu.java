@@ -60,6 +60,7 @@ public final class SafariMenu extends AbstractContainerMenu {
                 + " bolas: $"
                 + mod.config.bundlePrice.toPlainString());
     button(chest, 16, Items.OAK_DOOR, "Sair e guardar o saldo");
+    button(chest, 20, Items.FILLED_MAP, "Visitar regiões");
     button(chest, 22, Items.NETHER_STAR, "Eventos: clique para consultar");
   }
 
@@ -84,12 +85,13 @@ public final class SafariMenu extends AbstractContainerMenu {
         }
       return;
     }
-    if (slot != 10 && slot != 14 && slot != 16 && slot != 22) return;
+    if (slot != 10 && slot != 14 && slot != 16 && slot != 20 && slot != 22) return;
     try {
       switch (slot) {
         case 10 -> ref.mod.enter(ref.player);
         case 14 -> ref.mod.confirmBuy(ref.player);
         case 16 -> ref.mod.exit(ref.player);
+        case 20 -> ref.mod.regionMenu(ref.player);
         case 22 -> ref.mod.eventStatus(ref.player.createCommandSourceStack());
         default -> {}
       }

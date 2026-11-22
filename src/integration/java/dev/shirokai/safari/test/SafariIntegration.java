@@ -462,6 +462,89 @@ public final class SafariIntegration implements ModInitializer {
     p.setPos(102, 200, 102);
     tick.invoke(m);
     check(!m.locked(p) && p.getX() == 100.5, "external teleport ends visit and returns safely");
+    var regionSource = p.createCommandSourceStack().withPermission(4);
+    var regionCommands = s.getCommands().getDispatcher();
+    check(
+        regionCommands.execute("safari regioes", p.createCommandSourceStack()) == 0,
+        "region menu refuses players outside a visit");
+    m.enter(p);
+    w.setBlockAndUpdate(new BlockPos(4, 199, 0), Blocks.STONE.defaultBlockState());
+    p.setPos(4.5, 200, 0.5);
+    check(
+        regionCommands.execute("safariadmin regiao criar floresta", regionSource) == 1,
+        "admin registers safe region within Safari");
+    check(
+        regionCommands.execute("safariadmin regiao criar floresta", regionSource) == 0,
+        "duplicate region does not overwrite destination");
+    var beforeOrigin = v.origin;
+    long beforeCycle = v.cycleEnd;
+    int beforeBalls = Balls.count(p, v);
+    boolean beforePurchased = v.bundlePurchased;
+    p.setPos(0.5, 200, 0.5);
+    check(
+        regionCommands.execute("safari regiao floresta", p.createCommandSourceStack()) == 1
+            && p.getX() == 4.5,
+        "public region command teleports active visitor");
+    check(
+        v.origin.equals(beforeOrigin)
+            && v.cycleEnd == beforeCycle
+            && Balls.count(p, v) == beforeBalls
+            && v.bundlePurchased == beforePurchased,
+        "regional travel preserves origin, cycle, balls and purchase allowance");
+    regionCommands.execute("safari regioes", p.createCommandSourceStack());
+    check(p.containerMenu instanceof RegionsMenu, "region menu opens through player command");
+    var regionTick = SafariMod.class.getDeclaredMethod("tick");
+    regionTick.setAccessible(true);
+    regionTick.invoke(m);
+    check(p.containerMenu instanceof RegionsMenu, "Safari tick keeps region menu open");
+    p.containerMenu.clicked(0, 0, ClickType.QUICK_MOVE, p);
+    check(p.containerMenu instanceof RegionsMenu, "shift click cannot extract destination icons");
+    p.containerMenu.clicked(0, 0, ClickType.PICKUP, p);
+    check(
+        p.containerMenu == p.inventoryMenu && p.getX() == 4.5,
+        "menu click safely teleports and closes interface");
+    w.setBlockAndUpdate(new BlockPos(4, 200, 0), Blocks.STONE.defaultBlockState());
+    check(
+        regionCommands.execute("safari regiao floresta", p.createCommandSourceStack()) == 0,
+        "travel rechecks obstruction at destination");
+    w.setBlockAndUpdate(new BlockPos(4, 200, 0), Blocks.AIR.defaultBlockState());
+    if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("shirokai_trainers")) {
+      check(
+          regionCommands.execute("traineradmin npc create-command safari_guia", regionSource) == 1,
+          "actual Trainers creates independent command NPC");
+      check(
+          regionCommands.execute(
+                  "traineradmin npc command safari_guia player safari regioes", regionSource)
+              == 1,
+          "actual Trainers accepts Safari region menu command");
+      net.minecraft.world.entity.Entity guide = null;
+      for (var entity : w.getAllEntities())
+        if (entity instanceof com.cobblemon.mod.common.entity.npc.NPCEntity
+            && entity.getName().getString().equals("safari_guia")) guide = entity;
+      check(
+          guide != null && TrainersBridge.safariNpc(guide),
+          "optional bridge recognizes actual indexed Safari guide");
+      var interaction =
+          net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT
+              .invoker()
+              .interact(p, w, net.minecraft.world.InteractionHand.MAIN_HAND, guide, null);
+      check(
+          interaction.consumesAction() && p.containerMenu instanceof RegionsMenu,
+          "real Trainers NPC callback opens menu for non-OP active visitor");
+      SafariMod.closeMenuIfOpen(p);
+      regionCommands.execute(
+          "traineradmin npc command safari_guia player safari comprar", regionSource);
+      check(TrainersBridge.safariNpc(guide), "seller action is allowed by optional NPC bridge");
+      regionCommands.execute(
+          "traineradmin npc command safari_guia player safari tempo", regionSource);
+      check(
+          !TrainersBridge.safariNpc(guide),
+          "unrelated NPC action does not bypass Safari entity guard");
+    }
+    m.exit(p);
+    check(
+        regionCommands.execute("safari regiao floresta", p.createCommandSourceStack()) == 0,
+        "regional travel cannot start a visit or bypass entry");
     var configured = m.config;
     var source = p.createCommandSourceStack().withPermission(4);
     var dispatcher = s.getCommands().getDispatcher();
@@ -480,7 +563,9 @@ public final class SafariIntegration implements ModInitializer {
     check(
         dispatcher.execute("safariadmin delete", source) == 1,
         "administrator can delete configured Safari area");
-    check(m.config.area == null && m.config.entrance == null, "deletion clears area and entrance");
+    check(
+        m.config.area == null && m.config.entrance == null && m.config.regions.isEmpty(),
+        "deletion clears area, entrance and region destinations");
     var persisted =
         Storage.JSON.fromJson(
             Files.readString(Path.of("config/shirokai-safari.json")), Config.class);

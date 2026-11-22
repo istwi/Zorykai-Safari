@@ -1,0 +1,38 @@
+# Configurar regiões e NPCs do Safari 0.1.4
+# Use a versão do Shirokai Trainers com NPCs de comando (testado: 0.3.2).
+# Não é necessário modificar o Trainers. Comandos de configuração requerem admin/OP.
+
+# Em cada destino, dentro da área selecionada e sobre chão sólido:
+/safariadmin regiao criar floresta
+/safariadmin regiao criar deserto
+/safariadmin regiao criar montanha
+
+# Gestão:
+/safariadmin regiao listar
+/safariadmin regiao remover floresta
+# Para mover: remova e crie novamente na nova posição. Máximo 21 destinos.
+
+# Posicione-se no hub INTERNO do Safari para criar o guia:
+/safariadmin modo on
+/traineradmin npc create-command safari_guia
+/traineradmin npc command safari_guia player safari regioes
+
+# Posicione-se no ponto do vendedor:
+/traineradmin npc create-command safari_loja
+/traineradmin npc command safari_loja player safari comprar
+
+# Opcional: NPC com destino direto já cadastrado:
+/traineradmin npc create-command safari_deserto
+/traineradmin npc command safari_deserto player safari regiao deserto
+/safariadmin modo off
+
+# Jogadores (sem OP):
+/safari regioes
+/safari regiao deserto
+
+# As ações nos NPCs usam player, sem / antes de safari, e sem %player%.
+# O vendedor abre confirmação de compra; não cobra automaticamente ao clicar.
+# Continua valendo uma compra adicional por ciclo e o preço configurado.
+# Menu, compra e destinos exigem visita ativa; o NPC não inicia nem renova a sessão.
+# Destinos precisam estar dentro do mesmo Safari, inclusive altura/dimensão.
+# /safariadmin delete remove também os destinos. Recriar a área descarta destinos que ficarem fora dela.

@@ -15,6 +15,7 @@ public final class Config {
   public Area area;
   public Position entrance;
   public Position lobby;
+  public Map<String, Position> regions = new LinkedHashMap<>();
 
   public record Position(String dimension, double x, double y, double z, float yaw, float pitch) {}
 
@@ -63,6 +64,19 @@ public final class Config {
             || area.maxX - (long) area.minX > 4096
             || area.maxZ - (long) area.minZ > 4096))
       throw new IllegalArgumentException("Área inválida");
+    if (regions == null || regions.size() > 21)
+      throw new IllegalArgumentException("São permitidas até 21 regiões");
+    for (var entry : regions.entrySet()) {
+      var dest = entry.getValue();
+      if (entry.getKey() == null
+          || !entry.getKey().matches("[a-z0-9_-]{1,32}")
+          || dest == null
+          || area == null
+          || !Double.isFinite(dest.x + dest.y + dest.z)
+          || !Float.isFinite(dest.yaw + dest.pitch)
+          || !area.contains(dest.dimension, dest.x, dest.y, dest.z))
+        throw new IllegalArgumentException("Região inválida ou fora da área: " + entry.getKey());
+    }
     if (lobby != null
         && (lobby.dimension == null
             || !Double.isFinite(lobby.x + lobby.y + lobby.z)

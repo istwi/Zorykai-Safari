@@ -1,4 +1,10 @@
-# Validação — 0.1.3
+# Validação — 0.1.4
+
+28 testes unitários e 85 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.4`, incluindo hash do Trainers 0.3.2 real usado, sem modificações. As novas verificações incluem criação/duplicidade de região, teleporte por comando e menu, recusa fora de visita, obstrução de destino, menu preservado no tick, shift-click sem extração de ícones e preservação de origem/ciclo/bolas/compra.
+
+O Trainers real criou o NPC guia, salvou a ação `player safari regioes`, e seu callback UseEntity abriu RegionsMenu para ServerPlayer sem OP. A ponte reconheceu também a ação de vendedor e recusou ação não autorizada; o clique de compra completo já foi validado no fluxo Safari anterior, não foi repetido como clique no NPC vendedor nesta rodada. Foram usados jogadores nativos simulados e captura de pacotes, sem cliente humano nem inspeção visual. O Clear não mudou. Não houve nova rodada completa de economia/reinício; o histórico abaixo registra essas validações anteriores.
+
+# Histórico — 0.1.3
 
 23 testes unitários Safari e 68 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.3`. As 7 novas verificações usam o comando real `/safariadmin delete`: recusa com visitante ativo, recusa com retorno pendente, execução administrativa, remoção de área/entrada, persistência em disco, preservação do ciclo/bolas/lobby e recusa quando não há área. O JAR Clear é idêntico ao 0.1.2 abaixo. Não houve cliente humano; foram usados ServerPlayers nativos e captura de pacotes.
 

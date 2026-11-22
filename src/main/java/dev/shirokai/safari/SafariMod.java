@@ -162,7 +162,10 @@ public final class SafariMod implements ModInitializer {
                 : InteractionResult.PASS);
     UseEntityCallback.EVENT.register(
         (p, w, h, e, hit) ->
-            p instanceof ServerPlayer sp && locked(sp) && !(e instanceof PokemonEntity)
+            p instanceof ServerPlayer sp
+                    && locked(sp)
+                    && !(e instanceof PokemonEntity)
+                    && !TrainersBridge.safariNpc(e)
                 ? InteractionResult.FAIL
                 : InteractionResult.PASS);
     AttackEntityCallback.EVENT.register(
@@ -242,6 +245,28 @@ public final class SafariMod implements ModInitializer {
                                       "Nenhuma Safari Ball disponível para equipar");
                                 tell(p, "Safari Balls equipadas.");
                               })));
+          root.then(
+              Commands.literal("regioes")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> regionMenu(c.getSource().getPlayerOrException()))));
+          root.then(
+              Commands.literal("regiao")
+                  .then(
+                      Commands.argument("nome", StringArgumentType.word())
+                          .suggests(
+                              (c, b) ->
+                                  SharedSuggestionProvider.suggest(config.regions.keySet(), b))
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () ->
+                                          teleportRegion(
+                                              c.getSource().getPlayerOrException(),
+                                              StringArgumentType.getString(c, "nome"))))));
           dispatcher.register(root);
           var admin =
               Commands.literal("safariadmin")
@@ -636,6 +661,47 @@ public final class SafariMod implements ModInitializer {
                                                           .EntityArgument.getPlayer(c, "jogador"),
                                                       false)))));
           admin.then(review);
+          var region = Commands.literal("regiao");
+          region.then(
+              Commands.literal("criar")
+                  .then(
+                      Commands.argument("nome", StringArgumentType.word())
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () ->
+                                          createRegion(
+                                              c.getSource().getPlayerOrException(),
+                                              StringArgumentType.getString(c, "nome"))))));
+          region.then(
+              Commands.literal("remover")
+                  .then(
+                      Commands.argument("nome", StringArgumentType.word())
+                          .suggests(
+                              (c, b) ->
+                                  SharedSuggestionProvider.suggest(config.regions.keySet(), b))
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () ->
+                                          removeRegion(StringArgumentType.getString(c, "nome"))))));
+          region.then(
+              Commands.literal("listar")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () ->
+                                  c.getSource()
+                                      .sendSuccess(
+                                          () ->
+                                              Component.literal(
+                                                  "Regiões Safari: "
+                                                      + String.join(", ", config.regions.keySet())),
+                                          false))));
+          admin.then(region);
           dispatcher.register(admin);
         });
   }
@@ -883,15 +949,16 @@ public final class SafariMod implements ModInitializer {
     var next = copyConfig();
     next.area = null;
     next.entrance = null;
+    next.regions.clear();
     next.validate();
     saveConfig(next);
     selections.clear();
     source.sendSuccess(
         () ->
             Component.literal(
-                "Safari: área removida. O mundo e os dados dos jogadores foram preservados."
-                    + " Selecione pos1/pos2, use /safariadmin criar e defina /safariadmin"
-                    + " entrada."),
+                "Safari: área, entrada e destinos de regiões removidos. O mundo e os dados dos"
+                    + " jogadores foram preservados. Selecione pos1/pos2, use /safariadmin criar e"
+                    + " defina /safariadmin entrada."),
         false);
   }
 
@@ -914,6 +981,15 @@ public final class SafariMod implements ModInitializer {
             Math.max(x.getY(), y.getY()),
             Math.max(x.getZ(), y.getZ()));
     next.entrance = null;
+    next.regions
+        .entrySet()
+        .removeIf(
+            e ->
+                !next.area.contains(
+                    e.getValue().dimension(),
+                    e.getValue().x(),
+                    e.getValue().y(),
+                    e.getValue().z()));
     next.validate();
     saveConfig(next);
     tell(p, "Área criada. Posicione-se dentro e use /safariadmin entrada.");
@@ -1040,6 +1116,7 @@ public final class SafariMod implements ModInitializer {
         }
         if (p.containerMenu != p.inventoryMenu
             && !(p.containerMenu instanceof SafariMenu)
+            && !(p.containerMenu instanceof RegionsMenu)
             && !(p.containerMenu instanceof AdminMenu)) closeMenuIfOpen(p);
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(5);
@@ -1154,6 +1231,81 @@ public final class SafariMod implements ModInitializer {
         new SimpleMenuProvider(
             (id, inventory, p) -> new AdminMenu(id, inventory, this),
             Component.literal("Safari • Administração")));
+  }
+
+  public void createRegion(ServerPlayer p, String name) throws Exception {
+    if (!name.matches("[a-z0-9_-]{1,32}"))
+      throw new IllegalArgumentException(
+          "Use nome com letras minúsculas, números, _ ou - (até 32)");
+    if (config.area == null || !inside(p))
+      throw new IllegalStateException("Posicione-se dentro da área do Safari");
+    if (config.regions.containsKey(name))
+      throw new IllegalStateException("Região já existe. Remova-a antes de redefinir");
+    var dest = position(p);
+    if (!safe(p, p.serverLevel(), dest))
+      throw new IllegalStateException("Posição insegura: fique em chão sólido e livre");
+    var next = copyConfig();
+    next.regions.put(name, dest);
+    next.validate();
+    saveConfig(next);
+    tell(p, "Região salva: " + name);
+  }
+
+  private void removeRegion(String name) throws Exception {
+    if (!config.regions.containsKey(name)) throw new IllegalStateException("Região inexistente");
+    var next = copyConfig();
+    next.regions.remove(name);
+    next.validate();
+    saveConfig(next);
+  }
+
+  public boolean canTravel(ServerPlayer p) {
+    return active(p)
+        && inside(p)
+        && visit(p).usable(System.currentTimeMillis())
+        && Permissions.has(p, "shirokai.safari.use", true)
+        && p.isAlive()
+        && !p.isSpectator();
+  }
+
+  public void regionMenu(ServerPlayer p) {
+    requireHealthy();
+    if (!canTravel(p))
+      throw new IllegalStateException(
+          "Entre no Safari e tenha tempo disponível para visitar regiões");
+    if (config.regions.isEmpty()) throw new IllegalStateException("Nenhuma região cadastrada");
+    p.openMenu(
+        new SimpleMenuProvider(
+            (id, inventory, player) -> new RegionsMenu(id, inventory, this),
+            Component.literal("Safari • Regiões")));
+  }
+
+  public void teleportRegion(ServerPlayer p, String name) {
+    requireHealthy();
+    if (!canTravel(p))
+      throw new IllegalStateException(
+          "Entre no Safari e tenha tempo disponível para visitar regiões");
+    if (p.isPassenger()
+        || p.isCreative()
+        || BattleRegistry.getBattleByParticipatingPlayer(p) != null)
+      throw new IllegalStateException("Saia da batalha/veículo e use sobrevivência");
+    var dest = config.regions.get(name);
+    if (dest == null
+        || config.area == null
+        || !config.area.contains(dest.dimension(), dest.x(), dest.y(), dest.z()))
+      throw new IllegalStateException("Região inexistente ou fora do Safari");
+    var w = world(dest.dimension());
+    if (w == null || !safe(p, w, dest))
+      throw new IllegalStateException("Destino indisponível ou inseguro");
+    var v = visit(p);
+    v.charge(System.currentTimeMillis());
+    if (!v.usable(System.currentTimeMillis()))
+      throw new IllegalStateException("Tempo de Safari esgotado");
+    save();
+    closeMenuIfOpen(p);
+    if (!p.teleportTo(w, dest.x(), dest.y(), dest.z(), Set.of(), dest.yaw(), dest.pitch()))
+      throw new IllegalStateException("Teleporte recusado pela proteção");
+    tell(p, "Você chegou à região " + name + ".");
   }
 
   public static void closeMenuIfOpen(ServerPlayer p) {
