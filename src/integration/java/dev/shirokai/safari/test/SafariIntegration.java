@@ -8,7 +8,6 @@ import dev.shirokai.safari.test.mixin.PlayerMapAccess;
 import java.nio.file.*;
 import java.util.*;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.*;
@@ -108,7 +107,12 @@ public final class SafariIntegration implements ModInitializer {
     for (int x = 98; x <= 103; x++)
       for (int z = 98; z <= 103; z++)
         w.setBlock(new BlockPos(x, 199, z), Blocks.STONE.defaultBlockState(), 3);
-    var p = FakePlayer.get(w, new GameProfile(ID, "SafariTest"));
+    var p =
+        new net.minecraft.server.level.ServerPlayer(
+            s,
+            w,
+            new GameProfile(ID, "SafariTest"),
+            net.minecraft.server.level.ClientInformation.createDefault());
     p.setPos(100.5, 200, 100.5);
     var capture = new Capture(s, p);
     p.connection = capture;
@@ -189,6 +193,36 @@ public final class SafariIntegration implements ModInitializer {
             .equals("cobblemon:safari_ball"),
         "ball bundle uses actual Cobblemon Safari Ball");
     check(v.budgetMillis == 3600000, "normal budget one hour");
+    var safariBall =
+        (com.cobblemon.mod.common.item.PokeBallItem) p.getInventory().getItem(0).getItem();
+    var flight =
+        new com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity(
+            safariBall.getPokeBall(),
+            w,
+            p,
+            com.cobblemon.mod.common.CobblemonEntities.EMPTY_POKEBALL);
+    check(
+        flight.getTags().contains(SingleUseBalls.TAG),
+        "single-use marking happens before chunk-load callbacks or projectile impact");
+    w.addFreshEntity(flight);
+    check(
+        flight.getTags().contains(SingleUseBalls.TAG),
+        "Safari projectile receives persistent single-use tag");
+    check(
+        flight.spawnAtLocation(safariBall) == null,
+        "missed Safari ball cannot refund ordinary ground ball");
+    check(
+        flight.spawnAtLocation(new ItemStack(safariBall), 0) == null,
+        "stack refund path is blocked for Safari projectile");
+    flight.discard();
+    var normal =
+        new com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity(
+            safariBall.getPokeBall(), w, com.cobblemon.mod.common.CobblemonEntities.EMPTY_POKEBALL);
+    check(
+        normal.spawnAtLocation(safariBall) != null,
+        "ordinary Safari balls outside visit preserve native refund behavior");
+    normal.discard();
+
     check(
         !p.getInventory().add(new ItemStack(Items.DIRT)),
         "direct external inventory additions blocked");
@@ -223,8 +257,9 @@ public final class SafariIntegration implements ModInitializer {
     check(
         SafariMod.commands(p.createCommandSourceStack().withPermission(0), "home"),
         "permission revoked disables admin mode");
-    var menu = new SafariMenu(91, p.getInventory(), m);
-    p.containerMenu = menu;
+    m.menu(p);
+    var menu = p.containerMenu;
+    check(menu instanceof SafariMenu, "native ServerPlayer opens actual Safari menu");
     check(menu.slots.size() == 63, "native menu has 27 protected slots and player inventory");
     int before = p.getInventory().getItem(0).getCount();
     menu.clicked(27, 0, ClickType.QUICK_MOVE, p);
@@ -243,6 +278,43 @@ public final class SafariIntegration implements ModInitializer {
           bossOps(capture, raidBar.getId(), "add") >= 2,
           "Raid boss bar restored after Safari exit");
     long remaining = v.remaining();
+    var ordinarySafari =
+        new ItemStack(
+            net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                net.minecraft.resources.ResourceLocation.parse("cobblemon:safari_ball")));
+    p.getInventory().add(ordinarySafari);
+    m.menu(p);
+    var afterExit = p.containerMenu;
+    var nativeTick = SafariMod.class.getDeclaredMethod("tick");
+    nativeTick.setAccessible(true);
+    long oldClose =
+        capture.packets.stream()
+            .filter(
+                packet ->
+                    packet
+                        instanceof
+                        net.minecraft.network.protocol.game.ClientboundContainerClosePacket)
+            .count();
+    nativeTick.invoke(m);
+    check(
+        capture.packets.stream()
+                .filter(
+                    packet ->
+                        packet
+                            instanceof
+                            net.minecraft.network.protocol.game.ClientboundContainerClosePacket)
+                .count()
+            == oldClose,
+        "outside Safari tick does not send a spurious container-close packet");
+    check(
+        p.containerMenu == afterExit && afterExit.stillValid(p),
+        "Safari menu stays open after exit even with ordinary Safari Ball inventory");
+    afterExit.clicked(10, 0, ClickType.PICKUP, p);
+    check(
+        p.containerMenu == afterExit && !m.active(p),
+        "inventory-full entry refusal leaves Safari menu open instead of closing it");
+    p.closeContainer();
+
     check(
         p.getInventory().contains(new ItemStack(Items.EMERALD)),
         "ground loot survives Safari exit");

@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "checks": [
+    "real LuckPerms group magma receives configured quota",
+    "real LuckPerms group aqua receives configured quota",
+    "real LuckPerms group plasma receives configured quota",
+    "real LuckPerms group galactic receives configured quota",
+    "actual Impactor debited exactly configured 10000",
+    "purchase delivered exactly 32 additional bound balls",
+    "purchased ball balance survives exit and reentry",
+    "one additional purchase per cycle survives exit and reentry without another debit",
+    "entry quota and purchase availability reset together on next cycle",
+    "insufficient funds does not grant balls",
+    "insufficient funds does not make negative balance",
+    "refusal explains insufficient funds, currency and available balance",
+    "currency command accepts actual namespaced Impactor currency",
+    "confirmation cannot be reused to charge twice",
+    "zero-price package grants balls without invalid zero withdrawal",
+    "free bundle also consumes the single additional purchase of the cycle"
+  ]
+}

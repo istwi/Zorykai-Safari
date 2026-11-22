@@ -95,6 +95,23 @@ public final class AdminMenu extends AbstractContainerMenu {
                 + area.maxZ(),
         "Entrada: " + (mod.config.entrance == null ? "NÃO definida" : "definida"),
         "Saída: " + (mod.config.lobby == null ? "NÃO definida" : "definida"));
+    var cleanup = ClearBridge.status();
+    item(
+        18,
+        Items.BUCKET,
+        "&a&lLimpeza do Safari",
+        cleanup.getOrDefault("status", "indisponível"),
+        "Próxima: "
+            + cleanup.getOrDefault("next", "-")
+            + "s | intervalo: "
+            + cleanup.getOrDefault("interval", "-")
+            + "s",
+        "Última: "
+            + cleanup.getOrDefault("items", "0")
+            + " itens, "
+            + cleanup.getOrDefault("pokemon", "0")
+            + " Pokémon",
+        "Contagem e mensagens independentes da limpeza global.");
     item(
         20,
         Items.EMERALD,

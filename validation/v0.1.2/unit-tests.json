@@ -1,0 +1,34 @@
+{
+  "Zorykai-Safari": [
+    {
+      "name": "dev.shirokai.safari.StorageTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.shirokai.safari.MessagesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.shirokai.safari.VisitTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "Zorykai-Clear-Safari": [
+    {
+      "name": "dev.shirokai.clear.SafariConfigTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ]
+}

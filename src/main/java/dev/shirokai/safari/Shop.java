@@ -25,12 +25,17 @@ public final class Shop {
     var v = mod.visit(p);
     if (!mod.active(p) || !v.usable(System.currentTimeMillis()))
       throw new IllegalStateException("Entre no Safari primeiro");
+    if (v.bundlePurchased)
+      throw new IllegalStateException(
+          "Pacote adicional já comprado. Renova junto com o Safari em "
+              + mod.format(v.cycleEnd - System.currentTimeMillis()));
     if (v.purchase != null)
       throw new IllegalStateException("Existe uma compra pendente de conferência");
     if (v.balls + mod.config.ballBundle > 2304 || !Balls.room(p, mod.config.ballBundle, mod.config))
       throw new IllegalStateException("Sem espaço para o pacote");
     if (mod.config.bundlePrice.signum() == 0) {
-      v.balls = Balls.count(p, v) + mod.config.ballBundle;
+      v.balls = Balls.count(p, v);
+      v.creditBundle(mod.config.ballBundle, System.currentTimeMillis());
       mod.save();
       Balls.remove(p);
       Balls.give(p, v, v.balls, mod.config);
@@ -131,10 +136,17 @@ public final class Shop {
                       boolean online =
                           mod.server.getPlayerList().getPlayer(p.getUUID()) == p && mod.active(p);
                       if (online) v.balls = Balls.count(p, v);
-                      v.balls += amount;
+                      v.creditBundle(amount, System.currentTimeMillis());
                       v.purchase = null;
                       v.purchaseAmount = 0;
                       mod.save();
+                      if (v.nextCycleBundle > 0) {
+                        mod.tell(
+                            p,
+                            "O ciclo terminou durante o pagamento. O pacote está reservado para o"
+                                + " próximo Safari, sem nova cobrança.");
+                        return;
+                      }
                       if (online) {
                         Balls.remove(p);
                         Balls.give(p, v, v.balls, mod.config);

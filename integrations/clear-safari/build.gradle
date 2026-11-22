@@ -1,0 +1,52 @@
+plugins { id 'fabric-loom' version '1.10.5'; id 'java' }
+group='dev.shirokai.clear'
+version='1.0.1-safari'
+base { archivesName='Shirokai-Clear' }
+repositories { mavenCentral(); maven { url='https://artefacts.cobblemon.com/releases' } }
+dependencies {
+ minecraft 'com.mojang:minecraft:1.21.1'
+ mappings loom.officialMojangMappings()
+ modImplementation 'net.fabricmc:fabric-loader:0.18.3'
+ modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.18+1.21.1'
+ modImplementation 'com.cobblemon:fabric:1.8.3+1.21.1'
+ modCompileOnly files('libs/original-clear.jar')
+ modImplementation('me.lucko:fabric-permissions-api:0.3.1') { transitive=false }
+ include('me.lucko:fabric-permissions-api:0.3.1') { transitive=false }
+ testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+ testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { toolchain.languageVersion=JavaLanguageVersion.of(21); withSourcesJar() }
+test { useJUnitPlatform() }
+processResources { inputs.property 'version',project.version;filesMatching('fabric.mod.json'){expand version:project.version} }
+tasks.withType(AbstractArchiveTask).configureEach { preserveFileTimestamps=false;reproducibleFileOrder=true }
+// Keep untouched original class bytes, mixins, refmap, visual text and nested dependencies.
+tasks.register('patchedJar') {
+ dependsOn tasks.remapJar
+ def target=layout.buildDirectory.file('libs/Shirokai-Clear-1.0.1-Zorykai-Safari.jar')
+ inputs.file(file('libs/original-clear.jar'))
+ inputs.file(tasks.remapJar.archiveFile)
+ inputs.property('patchVersion',project.version.toString())
+ outputs.file(target)
+ doLast {
+  def original=new java.util.zip.ZipFile(file('libs/original-clear.jar'))
+  def compiled=new java.util.zip.ZipFile(tasks.remapJar.archiveFile.get().asFile)
+  try {
+   def replacements=[:]
+   compiled.entries().each { entry ->
+    if(entry.name ==~ /dev\/shirokai\/clear\/(ClearConfig|ClearService|ShirokaiClear|SafariArea|LocalText)(\$[^\/]*)?\.class/) replacements[entry.name]=compiled.getInputStream(entry).bytes
+   }
+   def meta=new groovy.json.JsonSlurper().parseText(original.getInputStream(original.getEntry('fabric.mod.json')).getText('UTF-8'))
+   meta.version=project.version.toString()
+   replacements['fabric.mod.json']=groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(meta)).getBytes('UTF-8')
+   def names=new TreeSet<String>();original.entries().each {names.add(it.name)};names.addAll(replacements.keySet())
+   def destination=target.get().asFile;destination.parentFile.mkdirs()
+   new java.util.zip.ZipOutputStream(new FileOutputStream(destination)).withCloseable { zip ->
+    names.each { name ->def entry=new java.util.zip.ZipEntry(name);entry.time=0;zip.putNextEntry(entry);if(!name.endsWith('/'))zip.write(replacements.containsKey(name)?replacements[name]:original.getInputStream(original.getEntry(name)).bytes);zip.closeEntry() }
+   }
+  } finally {original.close();compiled.close()}
+ }
+}
+build.dependsOn tasks.patchedJar
+sourceSets { integration { compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath; runtimeClasspath += output + compileClasspath } }
+tasks.register('integrationJar', Jar) { from sourceSets.integration.output; archiveClassifier='integration-unmapped'; destinationDirectory=layout.buildDirectory.dir('integration') }
+tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) { dependsOn tasks.integrationJar; classpath.from(sourceSets.main.output); inputFile=tasks.integrationJar.archiveFile; archiveFileName='shirokai-clear-safari-integration.jar'; destinationDirectory=layout.buildDirectory.dir('integration') }

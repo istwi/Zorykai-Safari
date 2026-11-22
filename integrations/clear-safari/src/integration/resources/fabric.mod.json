@@ -1,0 +1,1 @@
+{"schemaVersion": 1, "id": "shirokai_clear_safari_test", "version": "1.0.0", "name": "Disposable Clear Safari Integration", "environment": "server", "entrypoints": {"main": ["dev.shirokai.clear.test.ClearSafariIntegration"]}, "depends": {"shirokaiclear": "*", "shirokai_safari": "*"}, "mixins": ["clear-safari-test.mixins.json"]}

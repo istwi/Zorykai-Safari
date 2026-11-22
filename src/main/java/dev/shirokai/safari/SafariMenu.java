@@ -53,7 +53,12 @@ public final class SafariMenu extends AbstractContainerMenu {
         chest,
         14,
         Items.EMERALD,
-        "Comprar " + mod.config.ballBundle + " bolas: $" + mod.config.bundlePrice.toPlainString());
+        v.bundlePurchased
+            ? "Pacote já comprado • renova com o próximo Safari"
+            : "Comprar "
+                + mod.config.ballBundle
+                + " bolas: $"
+                + mod.config.bundlePrice.toPlainString());
     button(chest, 16, Items.OAK_DOOR, "Sair e guardar o saldo");
     button(chest, 22, Items.NETHER_STAR, "Eventos: clique para consultar");
   }
@@ -70,7 +75,7 @@ public final class SafariMenu extends AbstractContainerMenu {
     if (type != ClickType.PICKUP || button != 0) return;
     if (confirmation) {
       if (slot != 11 && slot != 15) return;
-      ref.player.closeContainer();
+      SafariMod.closeMenuIfOpen(ref.player);
       if (slot == 11)
         try {
           ref.mod.completePurchase(ref.player);
@@ -80,7 +85,6 @@ public final class SafariMenu extends AbstractContainerMenu {
       return;
     }
     if (slot != 10 && slot != 14 && slot != 16 && slot != 22) return;
-    ref.player.closeContainer();
     try {
       switch (slot) {
         case 10 -> ref.mod.enter(ref.player);

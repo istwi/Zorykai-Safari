@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "checks": [
+    "real custom multiworld:safari dimension loaded from datapack",
+    "Clear reads Safari\u0027s configured dimension, not Overworld",
+    "scope checks dimension and all cuboid coordinates",
+    "Safari cleanup does not run before 120 seconds of Clear ticks",
+    "local cleanup removes eligible ground items and natural wild Pokemon at 120 seconds",
+    "local cleanup leaves other dimensions and outside cuboid intact",
+    "local cleanup does not reset the configured 600-second global timer",
+    "regional timer resets independently to 120 seconds",
+    "real owned Pokemon, battle-marked and capture-busy Pokemon are preserved",
+    "raid and persistent NPC Pokemon are preserved",
+    "existing global shiny protection is retained inside Safari",
+    "Safari warnings and results reach physical local occupants",
+    "Safari announcements do not leak to other dimensions or outside cuboid",
+    "global warning goes outside Safari only",
+    "global cleanup can start independently",
+    "global cleanup still removes outside entities, including same Multiworld dimension outside Safari; globalItem\u003dtrue globalWild\u003dtrue farItem\u003dtrue reason\u003dinativa",
+    "global cleanup never removes inside Safari",
+    "global result is excluded from Safari occupants",
+    "manual test can queue regional pass",
+    "entity that leaves Safari before removal is rechecked and preserved",
+    "simultaneous global and local passes share the configured per-tick batch budget",
+    "both regional and global jobs finish without starvation"
+  ],
+  "realClients": 0
+}

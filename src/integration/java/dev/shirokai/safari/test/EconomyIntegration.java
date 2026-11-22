@@ -127,6 +127,32 @@ public final class EconomyIntegration implements ModInitializer {
       check(
           main(s, () -> Balls.count(p, m.visit(p))) == 64,
           "purchased ball balance survives exit and reentry");
+      boolean duplicate = false;
+      try {
+        main(
+            s,
+            () -> {
+              m.confirmBuy(p);
+              m.completePurchase(p);
+              return null;
+            });
+      } catch (Exception expected) {
+        duplicate = true;
+      }
+      check(
+          duplicate && account.balance().compareTo(new BigDecimal("40000")) == 0,
+          "one additional purchase per cycle survives exit and reentry without another debit");
+      main(
+          s,
+          () -> {
+            m.exit(p);
+            m.visit(p).cycleEnd = System.currentTimeMillis();
+            m.enter(p);
+            return null;
+          });
+      check(
+          main(s, () -> !m.visit(p).bundlePurchased && Balls.count(p, m.visit(p)) == 32),
+          "entry quota and purchase availability reset together on next cycle");
       account.set(BigDecimal.ZERO);
       economy.save(account).get(30, TimeUnit.SECONDS);
       main(
@@ -138,7 +164,7 @@ public final class EconomyIntegration implements ModInitializer {
           });
       waitFor(s, () -> m.visit(p).purchase == null);
       check(
-          main(s, () -> Balls.count(p, m.visit(p))) == 64,
+          main(s, () -> Balls.count(p, m.visit(p))) == 32,
           "insufficient funds does not grant balls");
       check(account.balance().signum() == 0, "insufficient funds does not make negative balance");
       var capture = (SafariIntegration.Capture) p.connection;
@@ -189,8 +215,11 @@ public final class EconomyIntegration implements ModInitializer {
             return null;
           });
       check(
-          main(s, () -> Balls.count(p, m.visit(p))) == 96 && account.balance().signum() == 0,
+          main(s, () -> Balls.count(p, m.visit(p))) == 64 && account.balance().signum() == 0,
           "zero-price package grants balls without invalid zero withdrawal");
+      check(
+          main(s, () -> m.visit(p).bundlePurchased),
+          "free bundle also consumes the single additional purchase of the cycle");
       passed = true;
     } catch (Throwable e) {
       e.printStackTrace();

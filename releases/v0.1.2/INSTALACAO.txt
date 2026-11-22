@@ -1,0 +1,17 @@
+Zorykai Safari 0.1.2 + Zorykai Clear Safari
+
+1. Pare o servidor e guarde backup dos JARs/configurações/dados.
+2. Substitua o Safari anterior por Shirokai-Safari-0.1.2.jar.
+3. Substitua o Clear anterior por Shirokai-Clear-1.0.1-Zorykai-Safari.jar. Não deixe versões duplicadas em mods.
+4. Use Java 21, Minecraft 1.21.1, Fabric Loader >=0.18.3, Fabric API >=0.116.7+1.21.1 e Cobblemon 1.8.3. Impactor/LuckPerms continuam necessários para suas respectivas integrações.
+5. Preserve config e world/data/shirokai-safari. Inicie o servidor.
+
+O Clear acrescenta o bloco safari em config/shirokaiclear.json, sem substituir o intervalo/configuração de fora. Intervalo local padrão: 120 segundos; respeita cuboide e dimensão configurados no Safari (inclusive Multiworld), somente chunks carregados e filtros originais de proteção. Não é necessário instalar o Clear antigo junto.
+
+Mensagens locais ficam em safari.announcements, com &/§/hex. O exemplo clear-safari-section.json é somente esse bloco: não substitua toda sua configuração global por ele.
+
+Uma compra extra por ciclo de entrada, renovando junto com as 24 horas. Histórico antigo não registra compras concluídas e começa sem a marca de compra; tempos e bolas já salvos são preservados.
+
+Bolas Safari lançadas durante a visita não retornam ao chão quando erradas. Bolas comuns recolhidas antes da atualização não são convertidas; guarde-as antes de entrar. Coleta de outros itens continua permitida.
+
+Veja README.md e VALIDATION.md no repositório para comandos, limites e evidências.

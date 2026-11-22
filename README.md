@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.1
+# Zorykai Safari 0.1.2
 
-[Baixar JAR](releases/v0.1.1/Shirokai-Safari-0.1.1.jar) · [Projeto completo ZIP](releases/v0.1.1/Shirokai-Safari-0.1.1-projeto-completo.zip) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[Baixar Safari + Clear ZIP](releases/v0.1.2/Zorykai-Safari-0.1.2-e-Clear.zip) · [JAR Safari](releases/v0.1.2/Shirokai-Safari-0.1.2.jar) · [JAR Clear](releases/v0.1.2/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Projeto completo ZIP](releases/v0.1.2/Shirokai-Safari-0.1.2-projeto-completo.zip) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -20,7 +20,7 @@ A primeira entrada inicia uma janela de 24 horas. O saldo diminui somente durant
 
 São aumentos de 20% sobre o cargo anterior, arredondados para segundos. Quem tiver vários grupos usa o maior saldo. Os grupos herdados e contextos do LuckPerms são consultados na criação do ciclo; o cargo não altera retroativamente a cota. É possível usar também `shirokai.safari.vip.<grupo>`. Tudo fica configurável.
 
-As 32 Pokébolas grátis são entregues uma única vez por ciclo. São **Safari Balls reais do Cobblemon** (`cobblemon:safari_ball`), vinculadas ao jogador e ciclo. A versão 0.1.1 migra automaticamente o item antigo `poke_ball` para Safari Ball, preservando o saldo numérico e o ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada. Batalhas e captura usam o motor normal do Cobblemon. A captura usa as regras nativas da Safari Ball do Cobblemon, sem uma nova fórmula personalizada.
+As 32 Pokébolas grátis são entregues uma única vez por ciclo. São **Safari Balls reais do Cobblemon** (`cobblemon:safari_ball`), vinculadas ao jogador e ciclo. A atualização migra automaticamente o item antigo `poke_ball` para Safari Ball, preservando o saldo numérico e o ciclo. Bolas não usadas ficam no saldo ao sair e são devolvidas na reentrada. Batalhas e captura usam o motor normal do Cobblemon. A captura usa as regras nativas da Safari Ball do Cobblemon, sem uma nova fórmula personalizada.
 
 ## Instalação e seleção
 
@@ -50,7 +50,7 @@ Criar a área não gera construções, dimensões, biomas nem uma lista própria
 - `/safari comprar`: mostra o preço e solicita confirmação por 30 segundos.
 - `/safari comprar confirmar`: compra outro pacote de 32. Quantidade e preço são configuráveis. Mudança de preço/moeda invalida a confirmação anterior.
 
-A compra abre um menu de confirmação e um botão clicável no chat, válidos por 30 segundos. Preço 0 concede um pacote gratuito sem enviar um débito de valor zero ao Impactor. Não há entrada paga; o preço é apenas do pacote adicional. É possível comprar mais de um pacote, desde que haja espaço e o limite de saldo de bolas seja respeitado.
+A compra abre um menu de confirmação e um botão clicável no chat, válidos por 30 segundos. Preço 0 concede um pacote gratuito sem enviar um débito de valor zero ao Impactor. Não há entrada paga; o preço é apenas do pacote adicional. **Só é permitida uma compra adicional por ciclo**, inclusive quando o preço é zero. Pagamento recusado não consome a compra; uma operação incerta bloqueia novas tentativas até conferência. Sair, reconectar ou ganhar bônus de tempo não reinicia esse limite. A compra e a visita compartilham `cycleStart`/`cycleEnd`: renovam juntas na primeira entrada do próximo ciclo, sem um cooldown separado contado desde a compra.
 
 ## Proteções
 
@@ -107,6 +107,35 @@ Campos dos anúncios/evento: `{evento}`, `{duracao}`, `{tempo_evento}`, `{spawn}
 Exemplo de título: `"eventStartTitle": "&2&lEVENTO SAFARI"`. Após editar: `/safariadmin mensagens`.
 
 Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia NomeDoPlayer`. A mensagem informa o resultado do provedor (por exemplo, saldo insuficiente), a moeda, o saldo e o preço. Compare com a carteira que o servidor usa antes de trocar a moeda; o Safari não desconta de outra carteira por tentativa.
+
+## Limpeza independente na área/dimensão do Safari
+
+Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.2 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+
+A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
+
+- Fora da área do Safari: continua o intervalo global existente.
+- Dentro da dimensão e cuboide selecionados no Safari: itens no chão e Pokémon selvagens elegíveis são limpos a cada 120 segundos do relógio do Clear (2.400 ticks a 20 TPS).
+- Avisos e resultados locais só são enviados a quem está fisicamente dentro dessa área, mesmo que não tenha visita ativa. Os avisos/resultados globais deixam de ser enviados a esses ocupantes.
+- A dimensão vem da seleção `pos1`/`pos2`, inclusive Multiworld; não há Overworld fixo nem limpeza da dimensão inteira. As alturas selecionadas também contam.
+- Não carrega chunks para limpar. Duas rotinas compartilham o orçamento de processamento em lotes para evitar picos.
+- As proteções originais de dono, batalha, captura ocupada, NPC, raid, metadados, espécies e raridades são mantidas. Se o seu Clear protege shinies/lendários, eles continuam protegidos também no Safari.
+
+A rotina local usa idade mínima 0 por padrão, configurável separadamente. As exclusões globais de dimensão não anulam a limpeza local: a área do Safari já define a dimensão e os limites válidos. O `enabled` geral e `/shirokaiclear pause` continuam controlando a automação; `safari.enabled` permite desativar a divisão regional e voltar ao comportamento global original.
+
+Edite somente a seção `safari` para ajustar intervalo e mensagens locais, por exemplo `intervalSeconds: 120`. Os textos aceitam `{seconds}`, `{items}`, `{pokemon}`, cores/negrito com `&` e `§`. Use `/shirokaiclear reload` para aplicar. `/shirokaiclear status` e o painel `/safariadmin menu` mostram o contador e o último resultado local.
+
+O Clear mantém as exigências do JAR enviado: Fabric Loader 0.18.3+ e Fabric API 0.116.7+1.21.1, além de Minecraft 1.21.1 e Cobblemon 1.8.3. As classes originais de proteção/índice e os mixins desse JAR são preservados byte a byte; o projeto de adaptação está em `integrations/clear-safari`.
+
+## Bolas de uso único e limite sincronizado
+
+Cada Safari Ball fornecida pelo mod é consumida no arremesso nativo. O projétil recebe a marca de uso único já na construção; erro/impacto não gera uma Safari Ball normal no chão. Pokébolas externas e projéteis fora de uma visita preservam o comportamento normal.
+
+O pacote adicional fica registrado no mesmo ciclo diário da entrada. Na próxima renovação, o jogador recebe as 32 iniciais e volta a poder comprar uma vez. Se um pagamento for reconhecido só depois de o ciclo expirar, o pacote pago fica reservado para a próxima entrada, já contando como a compra extra desse novo ciclo, sem cobrar novamente ou perder as bolas.
+
+A versão anterior não registrava qual compra já tinha sido concluída no ciclo. Na atualização, históricos antigos sem esse campo começam sem compra marcada; a limitação vale para as compras concluídas com a nova versão. Os tempos e saldos existentes não são zerados.
+
+A entrada recusada por inventário cheio agora mantém o menu aberto e informa o motivo. Fechamentos redundantes durante entrada/retorno foram removidos. O teste de servidor abre o menu nativo após sair, com uma Safari Ball normal no inventário, e confirma que a rotina do Safari não envia um fechamento espontâneo; a compatibilidade visual com todos os mods/clientes ainda precisa de teste no ambiente real.
 
 ## Persistência, reinício e compras incertas
 

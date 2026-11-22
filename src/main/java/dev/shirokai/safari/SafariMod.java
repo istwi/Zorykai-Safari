@@ -50,6 +50,7 @@ public final class SafariMod implements ModInitializer {
     INSTANCE = this;
     SafariHud.register();
     SpawnMetrics.register();
+    SingleUseBalls.register();
     configPath = FabricLoader.getInstance().getConfigDir().resolve("shirokai-safari.json");
     try {
       if (!Files.exists(configPath)) Storage.write(configPath, new Config());
@@ -728,6 +729,11 @@ public final class SafariMod implements ModInitializer {
             + " | bolas: "
             + (v.active ? Balls.count(p, v) : v.balls));
     if (v.purchase != null) tell(p, "Compra pendente de revisão: " + v.purchase);
+    tell(
+        p,
+        v.bundlePurchased
+            ? "Pacote adicional já comprado; renova junto com o próximo ciclo."
+            : "Pacote adicional disponível: uma compra por ciclo.");
     eventStatus(p.createCommandSourceStack());
   }
 
@@ -756,10 +762,10 @@ public final class SafariMod implements ModInitializer {
         || p.isSpectator()
         || BattleRegistry.getBattleByParticipatingPlayer(p) != null)
       throw new IllegalStateException("Saia da batalha/veículo e use sobrevivência");
-    p.closeContainer();
     if (!Balls.empty(p))
       throw new IllegalStateException(
           "Esvazie inventário, armadura e mão secundária antes de entrar");
+    closeMenuIfOpen(p);
     if (inside(p))
       throw new IllegalStateException("Use a entrada do Safari a partir de fora da área");
     var dest = config.entrance;
@@ -818,7 +824,7 @@ public final class SafariMod implements ModInitializer {
       var battle = BattleRegistry.getBattleByParticipatingPlayer(p);
       if (battle != null) battle.stop();
       p.stopRiding();
-      p.closeContainer();
+      closeMenuIfOpen(p);
       if (!p.teleportTo(w, dest.x(), dest.y(), dest.z(), Set.of(), dest.yaw(), dest.pitch()))
         return false;
       if (p.serverLevel() != w
@@ -892,6 +898,12 @@ public final class SafariMod implements ModInitializer {
 
   public void confirmBuy(ServerPlayer p) {
     if (!active(p)) throw new IllegalStateException("Compre apenas dentro do Safari");
+    if (visit(p).bundlePurchased)
+      throw new IllegalStateException(
+          "Você já comprou o pacote deste ciclo. A compra e a entrada renovam juntas em "
+              + format(visit(p).cycleEnd - System.currentTimeMillis()));
+    if (visit(p).purchase != null)
+      throw new IllegalStateException("Compra pendente de conferência");
     confirmations.put(
         p.getUUID(),
         new Confirmation(
@@ -930,7 +942,7 @@ public final class SafariMod implements ModInitializer {
     if (shop.inFlight(v.purchase))
       throw new IllegalStateException("Compra ainda em andamento; aguarde a conclusão");
     if (active(p)) throw new IllegalStateException("Jogador deve sair antes da revisão");
-    if (confirmed) v.balls = Math.addExact(v.balls, Math.toIntExact(v.purchaseAmount));
+    if (confirmed) v.creditBundle(Math.toIntExact(v.purchaseAmount), System.currentTimeMillis());
     LOG.warn(
         "Revisão manual compra Safari {} jogador {} confirmada={}",
         v.purchase,
@@ -1005,7 +1017,7 @@ public final class SafariMod implements ModInitializer {
         }
         if (p.containerMenu != p.inventoryMenu
             && !(p.containerMenu instanceof SafariMenu)
-            && !(p.containerMenu instanceof AdminMenu)) p.closeContainer();
+            && !(p.containerMenu instanceof AdminMenu)) closeMenuIfOpen(p);
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(5);
         p.getFoodData().setExhaustion(0);
@@ -1119,5 +1131,9 @@ public final class SafariMod implements ModInitializer {
         new SimpleMenuProvider(
             (id, inventory, p) -> new AdminMenu(id, inventory, this),
             Component.literal("Safari • Administração")));
+  }
+
+  public static void closeMenuIfOpen(ServerPlayer p) {
+    if (p.containerMenu != p.inventoryMenu) p.closeContainer();
   }
 }

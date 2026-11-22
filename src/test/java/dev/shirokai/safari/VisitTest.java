@@ -117,4 +117,59 @@ class VisitTest {
     assertTrue(e.running(999));
     assertFalse(e.running(1000));
   }
+
+  @Test
+  void purchaseAndEntryRenewOnTheSameCycle() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.active = true;
+    assertTrue(v.canBuy(2000));
+    v.creditBundle(32, 2000);
+    assertEquals(64, v.balls);
+    assertFalse(v.canBuy(3000));
+    v.active = false;
+    assertFalse(v.renewable(v.cycleEnd - 1));
+    v.begin(v.cycleEnd, 86400, 3600, 32);
+    v.active = true;
+    assertEquals(32, v.balls);
+    assertFalse(v.bundlePurchased);
+    assertTrue(v.canBuy(v.cycleStart + 1));
+  }
+
+  @Test
+  void leavingDoesNotResetAdditionalBundle() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.active = true;
+    v.creditBundle(32, 2000);
+    v.active = false;
+    v.active = true;
+    assertFalse(v.canBuy(3000));
+    assertThrows(IllegalStateException.class, () -> v.creditBundle(32, 3000));
+  }
+
+  @Test
+  void interruptedPurchaseBlocksBothRenewalAndRepurchase() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.purchase = "pending";
+    assertFalse(v.renewable(v.cycleEnd + 1));
+    v.active = true;
+    assertFalse(v.canBuy(2000));
+  }
+
+  @Test
+  void latePaymentIsReservedForNextCycleInsteadOfLost() {
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    long end = v.cycleEnd;
+    v.creditBundle(32, end + 1);
+    assertEquals(32, v.nextCycleBundle);
+    v.begin(end + 2, 86400, 3600, 32);
+    v.active = true;
+    assertEquals(64, v.balls);
+    assertTrue(v.bundlePurchased);
+    assertFalse(v.canBuy(end + 3));
+    assertEquals(0, v.nextCycleBundle);
+  }
 }

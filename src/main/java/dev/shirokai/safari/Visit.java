@@ -3,7 +3,8 @@ package dev.shirokai.safari;
 /** Persisted active-time budget. Offline time never consumes it. */
 public final class Visit {
   public long cycleStart, cycleEnd, usedMillis, budgetMillis, lastCharge;
-  public int balls;
+  public int balls, nextCycleBundle;
+  public boolean bundlePurchased;
   public boolean active, recovery;
   public Config.Position origin;
   public String purchase, purchasePrice, purchaseCurrency;
@@ -21,7 +22,7 @@ public final class Visit {
   }
 
   public boolean renewable(long now) {
-    return !active && !recovery && now >= cycleEnd;
+    return !active && !recovery && purchase == null && now >= cycleEnd;
   }
 
   public void begin(long now, long cycleSeconds, long seconds, int bundle) {
@@ -30,7 +31,9 @@ public final class Visit {
     cycleEnd = Math.addExact(now, Math.multiplyExact(cycleSeconds, 1000));
     usedMillis = 0;
     budgetMillis = Math.multiplyExact(seconds, 1000);
-    balls = bundle;
+    balls = bundle + nextCycleBundle;
+    bundlePurchased = nextCycleBundle > 0;
+    nextCycleBundle = 0;
   }
 
   public boolean usable(long now) {
@@ -43,9 +46,25 @@ public final class Visit {
         || usedMillis < 0
         || budgetMillis < 0
         || usedMillis > budgetMillis
+        || nextCycleBundle < 0
+        || nextCycleBundle > 64
         || balls < 0
         || balls > 2304
         || active && origin == null
         || recovery && origin == null) throw new IllegalArgumentException("Estado Safari inválido");
+  }
+
+  public boolean canBuy(long now) {
+    return active && usable(now) && !bundlePurchased && purchase == null;
+  }
+
+  public void creditBundle(int count, long now) {
+    if (bundlePurchased)
+      throw new IllegalStateException("Pacote adicional já creditado neste ciclo");
+    if (count < 1 || count > 64)
+      throw new IllegalArgumentException("Quantidade de pacote inválida");
+    bundlePurchased = true;
+    if (now >= cycleEnd) nextCycleBundle = count;
+    else balls = Math.addExact(balls, count);
   }
 }

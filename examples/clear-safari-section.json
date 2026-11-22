@@ -1,0 +1,23 @@
+{
+  "safari": {
+    "enabled": true,
+    "intervalSeconds": 120,
+    "clearItems": true,
+    "clearWildPokemon": true,
+    "minimumItemAgeSeconds": 0,
+    "minimumPokemonAgeSeconds": 0,
+    "announcements": {
+      "enabled": true,
+      "showResults": true,
+      "warningSeconds": [
+        1,
+        2,
+        3,
+        5,
+        10
+      ],
+      "warningMessage": "§2✦ Safari §8» §7Limpeza local em §e{seconds}s§7!",
+      "resultMessage": "§2✦ Safari §8» §aLimpeza concluída! §7Itens: §f{items} §8| §7Pokémon: §f{pokemon}"
+    }
+  }
+}

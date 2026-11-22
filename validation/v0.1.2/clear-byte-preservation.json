@@ -1,0 +1,43 @@
+{
+  "original_sha256": "719d7e506d181aebf0e100eb6def4cc76be6b6a5b13d1bd6ac4cab172c2d81b0",
+  "patched_sha256": "d3c7ab7af87fd149a3c07c5ed27e2e18e255570eed3bc666c3222a7e64d35d8b",
+  "preserved_entries": [
+    "META-INF/MANIFEST.MF",
+    "META-INF/",
+    "META-INF/jars/",
+    "META-INF/jars/fabric-permissions-api-0.3.1.jar",
+    "Shirokai-Clear-refmap.json",
+    "dev/",
+    "dev/shirokai/",
+    "dev/shirokai/clear/",
+    "dev/shirokai/clear/BattleGuard.class",
+    "dev/shirokai/clear/Eligibility.class",
+    "dev/shirokai/clear/LoadedIndex.class",
+    "dev/shirokai/clear/ProtectionApi.class",
+    "dev/shirokai/clear/mixin/",
+    "dev/shirokai/clear/mixin/BattleEpochMixin.class",
+    "dev/shirokai/clear/mixin/BattleRegistryAccess.class",
+    "shirokaiclear.mixins.json"
+  ],
+  "changed_entries": [
+    "dev/shirokai/clear/ClearConfig$Announcements.class",
+    "dev/shirokai/clear/ClearConfig$Items.class",
+    "dev/shirokai/clear/ClearConfig$Logging.class",
+    "dev/shirokai/clear/ClearConfig$Npcs.class",
+    "dev/shirokai/clear/ClearConfig$Performance.class",
+    "dev/shirokai/clear/ClearConfig$Pokemon.class",
+    "dev/shirokai/clear/ClearConfig$Worlds.class",
+    "dev/shirokai/clear/ClearConfig.class",
+    "dev/shirokai/clear/ClearService$Job.class",
+    "dev/shirokai/clear/ClearService$Mode.class",
+    "dev/shirokai/clear/ClearService$Result.class",
+    "dev/shirokai/clear/ClearService.class",
+    "dev/shirokai/clear/ShirokaiClear.class",
+    "fabric.mod.json"
+  ],
+  "added_entries": [
+    "dev/shirokai/clear/ClearConfig$Safari.class",
+    "dev/shirokai/clear/LocalText.class",
+    "dev/shirokai/clear/SafariArea.class"
+  ]
+}

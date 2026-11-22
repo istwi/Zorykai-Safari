@@ -51,4 +51,20 @@ class StorageTest {
       assertEquals(1, files.count());
     }
   }
+
+  @Test
+  void purchasedAllowanceSurvivesPersistenceAndDoesNotResetOnPause() throws Exception {
+    var state = new Storage.Data();
+    var v = new Visit();
+    v.begin(1000, 86400, 3600, 32);
+    v.creditBundle(32, 2000);
+    state.players.put("player", v);
+    var path = dir.resolve("quota.json");
+    Storage.write(path, state);
+    var loaded = Storage.read(path, Storage.Data.class).players.get("player");
+    assertTrue(loaded.bundlePurchased);
+    assertEquals(64, loaded.balls);
+    loaded.active = true;
+    assertFalse(loaded.canBuy(3000));
+  }
 }
