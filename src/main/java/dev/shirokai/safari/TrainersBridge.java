@@ -5,7 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.Entity;
 
-/** Allows only indexed Trainers command NPCs with a public Safari action. */
+/** Allows indexed Trainers battle NPCs and command NPCs with a public Safari action. */
 public final class TrainersBridge {
   private TrainersBridge() {}
 
@@ -33,8 +33,11 @@ public final class TrainersBridge {
         for (var record : records.values()) {
           var c = record.getClass();
           if (!entity.getUUID().equals(c.getMethod("getEntity").invoke(record))
-              || (boolean) c.getMethod("getRemoved").invoke(record)
-              || c.getMethod("getTrainer").invoke(record) != null) continue;
+              || (boolean) c.getMethod("getRemoved").invoke(record)) continue;
+          // A linked trainer is safe to interact with: Trainers still owns the
+          // callback, validation, cooldown and battle startup.  Previously the
+          // Safari guard rejected it before Trainers could open its menu.
+          if (c.getMethod("getTrainer").invoke(record) != null) return true;
           var action = c.getMethod("getClickCommand").invoke(record);
           if (action == null) return false;
           return safariCommand(
