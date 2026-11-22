@@ -1,4 +1,8 @@
-# Validação — 0.1.2
+# Validação — 0.1.3
+
+23 testes unitários Safari e 68 verificações em servidor dedicado passaram. Evidências em `validation/v0.1.3`. As 7 novas verificações usam o comando real `/safariadmin delete`: recusa com visitante ativo, recusa com retorno pendente, execução administrativa, remoção de área/entrada, persistência em disco, preservação do ciclo/bolas/lobby e recusa quando não há área. O JAR Clear é idêntico ao 0.1.2 abaixo. Não houve cliente humano; foram usados ServerPlayers nativos e captura de pacotes.
+
+# Histórico — 0.1.2
 
 Minecraft 1.21.1, Java 21, Fabric Loader 0.18.3, Fabric API 0.116.18+1.21.1, Cobblemon 1.8.3. Os dois JARs finais e seus SHA-256 acompanham `validation/v0.1.2`. Histórico preservado nas pastas anteriores.
 

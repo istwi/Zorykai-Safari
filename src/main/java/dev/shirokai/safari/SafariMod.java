@@ -342,6 +342,9 @@ public final class SafariMod implements ModInitializer {
                               c.getSource(),
                               () -> createArea(c.getSource().getPlayerOrException()))));
           admin.then(
+              Commands.literal("delete")
+                  .executes(c -> run(c.getSource(), () -> deleteArea(c.getSource()))));
+          admin.then(
               Commands.literal("entrada")
                   .executes(
                       c ->
@@ -870,6 +873,26 @@ public final class SafariMod implements ModInitializer {
         p.getZ(),
         p.getYRot(),
         p.getXRot());
+  }
+
+  private void deleteArea(CommandSourceStack source) throws Exception {
+    if (data.players.values().stream().anyMatch(v -> v.active || v.recovery))
+      throw new IllegalStateException(
+          "Retire os participantes e resolva os retornos pendentes antes de remover a área");
+    if (config.area == null) throw new IllegalStateException("Nenhuma área de Safari configurada");
+    var next = copyConfig();
+    next.area = null;
+    next.entrance = null;
+    next.validate();
+    saveConfig(next);
+    selections.clear();
+    source.sendSuccess(
+        () ->
+            Component.literal(
+                "Safari: área removida. O mundo e os dados dos jogadores foram preservados."
+                    + " Selecione pos1/pos2, use /safariadmin criar e defina /safariadmin"
+                    + " entrada."),
+        false);
   }
 
   private void createArea(ServerPlayer p) throws Exception {

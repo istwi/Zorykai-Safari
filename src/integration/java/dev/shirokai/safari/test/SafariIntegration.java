@@ -462,6 +462,41 @@ public final class SafariIntegration implements ModInitializer {
     p.setPos(102, 200, 102);
     tick.invoke(m);
     check(!m.locked(p) && p.getX() == 100.5, "external teleport ends visit and returns safely");
+    var configured = m.config;
+    var source = p.createCommandSourceStack().withPermission(4);
+    var dispatcher = s.getCommands().getDispatcher();
+    m.enter(p);
+    check(
+        dispatcher.execute("safariadmin delete", source) == 0 && m.config.area != null,
+        "area deletion refuses active visitors");
+    m.exit(p);
+    v.recovery = true;
+    check(
+        dispatcher.execute("safariadmin delete", source) == 0 && m.config.area != null,
+        "area deletion refuses pending returns");
+    v.recovery = false;
+    long originalCycle = v.cycleEnd;
+    int originalBalls = v.balls;
+    check(
+        dispatcher.execute("safariadmin delete", source) == 1,
+        "administrator can delete configured Safari area");
+    check(m.config.area == null && m.config.entrance == null, "deletion clears area and entrance");
+    var persisted =
+        Storage.JSON.fromJson(
+            Files.readString(Path.of("config/shirokai-safari.json")), Config.class);
+    check(
+        persisted.area == null && persisted.entrance == null,
+        "area deletion persists to configuration");
+    check(
+        v.cycleEnd == originalCycle
+            && v.balls == originalBalls
+            && m.config.lobby.equals(configured.lobby),
+        "area deletion preserves player cycle, balls and safe exit");
+    check(
+        dispatcher.execute("safariadmin delete", source) == 0,
+        "deleting absent area reports refusal");
+    m.config = configured;
+    Storage.write(Path.of("config/shirokai-safari.json"), configured);
     m.enter(p);
     v.balls = 19;
     v.purchase = "uncertain-test";

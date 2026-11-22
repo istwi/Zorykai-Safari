@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.2
+# Zorykai Safari 0.1.3
 
-[Baixar Safari + Clear ZIP](releases/v0.1.2/Zorykai-Safari-0.1.2-e-Clear.zip) · [JAR Safari](releases/v0.1.2/Shirokai-Safari-0.1.2.jar) · [JAR Clear](releases/v0.1.2/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Projeto completo ZIP](releases/v0.1.2/Shirokai-Safari-0.1.2-projeto-completo.zip) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[Baixar Safari + Clear ZIP](releases/v0.1.3/Zorykai-Safari-0.1.3-e-Clear.zip) · [JAR Safari](releases/v0.1.3/Shirokai-Safari-0.1.3.jar) · [JAR Clear](releases/v0.1.3/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -110,7 +110,7 @@ Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia Nom
 
 ## Limpeza independente na área/dimensão do Safari
 
-Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.2 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.3 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
 
 A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
 
@@ -169,3 +169,11 @@ Regras herdadas/prioridades podem exigir ajuste. Outros mods podem negar um tele
 ## Compilação e testes
 
 Java 21: `./gradlew test build`. O projeto contém testes de domínio/persistência e uma fixture separada de integração. Consulte `VALIDATION.md`. O JAR de integração não deve ser instalado em produção.
+
+## Remover a área para edição
+
+Use `/safariadmin delete` com a permissão administrativa `shirokai.safari.admin` ou OP (console também pode executar). O comando remove somente a seleção de área e o ponto de entrada salvos; não apaga blocos, dimensão, lobby, configurações de eventos, ciclos, compras ou bolas dos jogadores. Recusa se houver qualquer participante ativo ou retorno pendente, inclusive offline. Retire os participantes antes.
+
+Sem área configurada, o Safari fica indisponível para entrada e o Clear volta ao escopo global original; a limpeza regional fica sem área. Para editar sem nenhuma limpeza global no local, pause o Clear com `/shirokaiclear pause` e retome ao terminar.
+
+Depois da edição, selecione `/safariadmin pos1` e `/safariadmin pos2`, use `/safariadmin criar` e defina `/safariadmin entrada`. As seleções temporárias antigas são descartadas ao deletar.

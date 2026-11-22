@@ -1,3 +1,9 @@
+# 0.1.3
+
+- `/safariadmin delete` remove área e entrada persistidas para edição, preservando mundo, lobby e dados dos jogadores.
+- Recusa remoção com participantes ativos/retorno pendente e limpa seleções temporárias após salvar.
+- Comando incluído na ajuda administrativa; testes de integração para remoção e recusas.
+
 # 0.1.2
 
 - Uma única compra de pacote adicional por ciclo de entrada, persistida e renovada junto com o Safari; pagamentos recusados não consomem o limite e créditos tardios não se perdem.

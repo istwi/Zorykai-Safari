@@ -17,6 +17,7 @@ public final class AdminHelp {
           "/safariadmin pos1",
           "/safariadmin pos2",
           "/safariadmin criar",
+          "/safariadmin delete",
           "/safariadmin entrada",
           "/safariadmin saida",
           "/safariadmin modo on",
