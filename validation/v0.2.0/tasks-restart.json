@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "reward engine starts with valid empty files",
+    "no missions or products are installed by default",
+    "real restart preserves unresolved external delivery receipt",
+    "real restart preserves points without replaying debit or reward",
+    "manual confirmation finalizes delivery without rerunning command",
+    "resolved receipt cannot be confirmed again"
+  ],
+  "realClients": 0
+}

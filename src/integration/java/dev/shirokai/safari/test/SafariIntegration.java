@@ -74,6 +74,10 @@ public final class SafariIntegration implements ModInitializer {
   private static final UUID ID = UUID.fromString("a0c4c320-178c-43de-a26c-f067e01e0fbb");
 
   public void onInitialize() {
+    if (Boolean.getBoolean("safari.tasks")) {
+      new TasksIntegration().onInitialize();
+      return;
+    }
     if (Boolean.getBoolean("safari.economy")) {
       new EconomyIntegration().onInitialize();
       return;

@@ -22,6 +22,7 @@ public abstract class InventoryGuardMixin {
     if (!safari$locked()
         || (player.containerMenu instanceof SafariMenu
             || player.containerMenu instanceof RegionsMenu
+            || player.containerMenu instanceof TasksMenu
             || player.containerMenu instanceof AdminMenu)) return;
     ci.cancel();
     player.containerMenu.sendAllDataToRemote();

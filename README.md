@@ -1,6 +1,6 @@
-# Zorykai Safari 0.1.6
+# Zorykai Safari 0.2.0
 
-[Baixar Safari + Clear ZIP](releases/v0.1.6/Zorykai-Safari-0.1.6-e-Clear.zip) · [JAR Safari](releases/v0.1.6/Shirokai-Safari-0.1.6.jar) · [JAR Clear](releases/v0.1.6/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[Baixar Safari + Clear ZIP](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Safari](releases/v0.2.0/Shirokai-Safari-0.2.0.jar) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -110,7 +110,7 @@ Se a loja recusar o pagamento, use `/safari saldo` ou `/safariadmin economia Nom
 
 ## Limpeza independente na área/dimensão do Safari
 
-Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.1.6 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
+Instale o **Clear adaptado incluído neste release**, substituindo o Clear anterior. Não deixe dois JARs do mesmo mod em `mods`. O Safari 0.2.0 também deve substituir seu JAR anterior. Os dois arquivos mantêm os IDs técnicos e as configurações existentes.
 
 A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`, sem substituir o intervalo, os avisos ou os filtros globais que você já configurou. Por padrão:
 
@@ -195,7 +195,7 @@ Com Shirokai Trainers 0.3.2, crie NPCs independentes no hub interno do Safari e 
 
 Para destino direto, configure `player safari regiao deserto`. Não inclua `/` antes de `safari` no argumento do NPC. Se estiver visitando o Safari durante a configuração, use `/safariadmin modo on` antes e `off` depois para liberar seus comandos administrativos. O jogador comum não recebe OP.
 
-O Safari permite a interação com NPCs indexados pelo Trainers com as ações públicas de compra, regiões/destino e eventos, no executor `player`. NPCs de batalha e outras ações não recebem essa liberação. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
+O Safari permite a interação com NPCs indexados pelo Trainers com as ações públicas de compra, regiões/destino, eventos, missões e loja de pontos, no executor `player`. NPCs de batalha e outras ações não recebem essa liberação. A integração é opcional; sem Trainers os comandos e menus de regiões continuam disponíveis. A compra usa a confirmação existente, com preço e limite de uma compra por ciclo. Fora de uma visita ativa, os NPCs não dão acesso ao Safari nem vendem bolas. [Exemplo completo](examples/safari-npcs.txt).
 
 Ao usar `/safariadmin delete`, os destinos são removidos junto com a área/entrada. Ao substituir a área com `criar`, destinos fora da nova seleção são descartados. Mundo e dados dos jogadores são preservados.
 
@@ -225,3 +225,25 @@ A compra adicional permanece uma por ciclo de 24 horas. O tempo extra não liber
 Caso um bônus renove as bolas durante uma visita e não haja espaço, o saldo novo fica salvo e o jogador é encaminhado à saída (ou ao retorno pendente se o destino estiver indisponível). Depois de guardar os itens, ele pode entrar para receber esse saldo, sem nova concessão ou cobrança.
 
 Na atualização, ciclos já esgotados perdem o saldo antigo de bolas; ciclos com tempo restante preservam seu saldo. O Clear permanece igual.
+
+## Missões e loja de Pontos Safari (0.2.0)
+
+Dois menus independentes, sem botões novos no menu principal:
+
+- `/safari missoes`: abas diárias/semanais, progresso, prazo, saldo e resgate.
+- `/safari loja`: produtos por Pontos Safari, seleção e confirmação em dois cliques, com limites individuais.
+
+**Nenhuma missão nem produto vem cadastrado.** Na primeira inicialização são gerados `config/shirokai-safari-missions.json`, `config/shirokai-safari-shop.json` e `config/shirokai-safari-menus.json`. Os catálogos começam com listas vazias. Títulos, lore, cores `&`/hex/negrito, ícones, slots e paginação são configuráveis. [Guia completo e JSONs vazios](examples/tasks/CONFIGURACAO.md).
+
+```mcfunction
+/traineradmin npc create-command safari_missoes
+/traineradmin npc command safari_missoes player safari missoes
+/traineradmin npc create-command safari_pontos
+/traineradmin npc command safari_pontos player safari loja
+```
+
+Os menus podem ser consultados fora da sessão; itens/comandos externos são resgatados somente fora do Safari. Pontos de missão sem recompensas externas podem ser resgatados durante a visita. Somente ações de visita ativa dentro da área progridem. Há objetivos de captura, espécies diferentes, derrotas selvagens, regiões distintas e diárias resgatadas; filtros de espécie/tipo/forma/região. Sem progresso retroativo. Captura/combate exigem a marca do spawn natural do Safari; Pokémon antigos passam a ser substituídos pelo spawn normal/clear, sem contar Pokémon dados por comando ou recebidos por troca.
+
+Os prazos são independentes da janela de entrada: padrão meia-noite de Brasília e segunda-feira. Pontos e compras ficam persistidos em `world/data/shirokai-safari/missions.json`, sob a pasta real do mundo. O Clear, a cota de visita e as regras de bolas não mudaram.
+
+Administração: `/safariadmin missoes reload`, `/safariadmin pontos <jogador> [ajuste]` e `/safariadmin entrega confirmar|cancelar <jogador>`. Entregas externas incertas geram recibo persistente e bloqueiam novos resgates/compras até revisão; não são reenviadas automaticamente. Confira os efeitos antes de cancelar um recibo. O guia explica campos, limites e revisão.

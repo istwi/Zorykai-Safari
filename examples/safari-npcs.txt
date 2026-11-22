@@ -41,3 +41,11 @@
 # /safariadmin delete remove também os destinos. Recriar a área descarta destinos que ficarem fora dela.
 
 # /safari mostra somente entrada, tempo e saída. Os demais menus são separados.
+
+# Missões e loja de Pontos Safari (0.2.0, sem definições por padrão):
+/traineradmin npc create-command safari_missoes
+/traineradmin npc command safari_missoes player safari missoes
+/traineradmin npc create-command safari_pontos
+/traineradmin npc command safari_pontos player safari loja
+# Estes dois menus podem ser consultados fora da visita; itens/comandos são resgatados fora.
+# Veja examples/tasks/CONFIGURACAO.md. O NPC de compra de Safari Balls permanece separado.

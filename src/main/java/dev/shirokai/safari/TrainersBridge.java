@@ -15,6 +15,8 @@ public final class TrainersBridge {
         && (command.equals("safari comprar")
             || command.equals("safari regioes")
             || command.equals("safari eventos")
+            || command.equals("safari missoes")
+            || command.equals("safari loja")
             || command.matches("safari regiao [a-z0-9_-]{1,32}"));
   }
 

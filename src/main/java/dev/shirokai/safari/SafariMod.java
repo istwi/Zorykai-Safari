@@ -28,6 +28,7 @@ import org.slf4j.*;
 public final class SafariMod implements ModInitializer {
   public static final Logger LOG = LoggerFactory.getLogger("shirokai_safari");
   public static SafariMod INSTANCE;
+  public Tasks tasks;
   public Config config;
   public Storage.Data data;
   public Messages messages;
@@ -93,6 +94,8 @@ public final class SafariMod implements ModInitializer {
             shop = new Shop(this);
             save();
             LOG.info("Safari carregado: {} ciclos persistidos", data.players.size());
+            tasks = new Tasks(this);
+            tasks.register();
           } catch (Exception e) {
             healthy = false;
             LOG.error("Safari desativado; arquivos preservados", e);
@@ -272,6 +275,20 @@ public final class SafariMod implements ModInitializer {
                                           teleportRegion(
                                               c.getSource().getPlayerOrException(),
                                               StringArgumentType.getString(c, "nome"))))));
+          root.then(
+              Commands.literal("missoes")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> tasks.open(c.getSource().getPlayerOrException(), false))));
+          root.then(
+              Commands.literal("loja")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> tasks.open(c.getSource().getPlayerOrException(), true))));
           dispatcher.register(root);
           var admin =
               Commands.literal("safariadmin")
@@ -712,6 +729,75 @@ public final class SafariMod implements ModInitializer {
                                                       + String.join(", ", config.regions.keySet())),
                                           false))));
           admin.then(region);
+          admin.then(
+              Commands.literal("missoes")
+                  .then(
+                      Commands.literal("reload")
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () -> {
+                                        tasks.reloadAll();
+                                        c.getSource()
+                                            .sendSuccess(
+                                                () ->
+                                                    Component.literal(
+                                                        "Missões, loja e menus recarregados."),
+                                                false);
+                                      }))));
+          admin.then(
+              Commands.literal("pontos")
+                  .then(
+                      Commands.argument(
+                              "jogador", net.minecraft.commands.arguments.EntityArgument.player())
+                          .executes(
+                              c ->
+                                  run(
+                                      c.getSource(),
+                                      () -> {
+                                        var balance =
+                                            tasks.player(
+                                                    net.minecraft.commands.arguments.EntityArgument
+                                                        .getPlayer(c, "jogador"))
+                                                .points;
+                                        c.getSource()
+                                            .sendSuccess(
+                                                () ->
+                                                    Component.literal("Pontos Safari: " + balance),
+                                                false);
+                                      }))
+                          .then(
+                              Commands.argument(
+                                      "ajuste", IntegerArgumentType.integer(-1000000, 1000000))
+                                  .executes(
+                                      c ->
+                                          run(
+                                              c.getSource(),
+                                              () ->
+                                                  tasks.points(
+                                                      net.minecraft.commands.arguments
+                                                          .EntityArgument.getPlayer(c, "jogador"),
+                                                      IntegerArgumentType.getInteger(
+                                                          c, "ajuste")))))));
+          for (String action : List.of("confirmar", "cancelar"))
+            admin.then(
+                Commands.literal("entrega")
+                    .then(
+                        Commands.literal(action)
+                            .then(
+                                Commands.argument(
+                                        "jogador",
+                                        net.minecraft.commands.arguments.EntityArgument.player())
+                                    .executes(
+                                        c ->
+                                            run(
+                                                c.getSource(),
+                                                () ->
+                                                    tasks.review(
+                                                        net.minecraft.commands.arguments
+                                                            .EntityArgument.getPlayer(c, "jogador"),
+                                                        action.equals("confirmar")))))));
           dispatcher.register(admin);
         });
   }
@@ -1157,7 +1243,9 @@ public final class SafariMod implements ModInitializer {
         if (p.containerMenu != p.inventoryMenu
             && !(p.containerMenu instanceof SafariMenu)
             && !(p.containerMenu instanceof RegionsMenu)
+            && !(p.containerMenu instanceof TasksMenu)
             && !(p.containerMenu instanceof AdminMenu)) closeMenuIfOpen(p);
+        if (tasks != null) tasks.safeTick(p);
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(5);
         p.getFoodData().setExhaustion(0);

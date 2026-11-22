@@ -1,4 +1,24 @@
-# Validação — 0.1.6
+# Validação — 0.2.0
+
+50 testes unitários e 155 verificações em servidores dedicados passaram: 100 do Safari/Raids/Trainers existente, 43 de missões/loja, 6 após reinício do servidor de missões e 6 após reinício do servidor Safari. Evidências em `validation/v0.2.0`; os JARs testados foram comparados ao SHA-256 do release. Clear, preços e entrega de Safari Balls não foram alterados.
+
+## Missões e pontos
+
+- Inicialização com três arquivos novos e catálogos vazios; menus separados por comando, sem pontos gratuitos.
+- Definições temporárias carregadas por JSON; erro de reload retendo configuração anterior; tipos e espécies distintos, UUID de captura não contado duas vezes, visitas a regiões e diárias resgatadas.
+- Eventos reais Cobblemon POKEMON_CAPTURED, BATTLE_FAINTED e BATTLE_VICTORY postados pela fixture com objetos nativos. Apenas faint não contou; vitória contou uma derrota; vitória repetida não duplicou. Não houve batalha/captura completa com interface de cliente: os eventos foram gerados sinteticamente no servidor.
+- Resgate de pontos único; missão semanal; proteção do inventário e manutenção da tela no tick do Safari.
+- Trainers0.3.2 real criou/vinculou NPC; callback real UseEntity abriu missões para jogador sem OP. A ponte também reconheceu o comando separado da loja.
+- Seleção de loja sem débito, confirmação com débito e entrega de item real, limite semanal, comando de recompensa real e recusa de inventário cheio antes de debitar.
+- Comando retornando zero simulou entrega incerta. Recibo persistido bloqueou outros resgates. Cancelamento manual restaurou pontos. Um segundo processo conservou saldo/recibo e confirmou sem executar novamente.
+
+Os testes unitários incluem fronteiras diária/semanal em Brasília, horário/fuso customizados e mudança de horário de verão, limites mensais/permanentes, progresso limitado/deduplicado, alteração de objetivo sem segundo resgate, persistência de recibos e configuração de slots sobrepostos.
+
+## Limites
+
+Jogadores nativos simulados, captura de pacotes e APIs reais, sem cliente humano/inspeção visual. Uma falha física entre efeito externo e confirmação não pode garantir exatamente uma vez; o recibo exige revisão e nunca é reenviado automaticamente. Produtos/comandos de mods futuros precisam ser validados com esses mods instalados. Não houve nova rodada Impactor/Clear nesta alteração: Pontos Safari usam seu próprio registro e a compra de Safari Balls permaneceu igual. Os objetivos/produtos usados pela fixture não entram nas configurações entregues.
+
+# Histórico — 0.1.6
 
 36 testes unitários e 122 verificações em servidores dedicados passaram: 100 no fluxo Safari/Raids/Trainers, 16 com Impactor/LuckPerms reais e 6 em segundo processo reutilizando o checkpoint do primeiro. Evidências e SHA-256 em `validation/v0.1.6`. O Clear não mudou.
 

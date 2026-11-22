@@ -1,0 +1,18 @@
+Safari0.2.0
+
+Desligue o servidor e substitua o JAR Safari anterior. Não deixe duplicados. Preserve config e dados de mundo. O Clear1.0.1-Zorykai-Safari continua igual: se já instalado, não precisa substituí-lo. Minecraft1.21.1, Java21, Cobblemon1.8.3, Fabric Loader>=0.18.3, Fabric API>=0.116.7+1.21.1.
+
+NOVOS COMANDOS:
+/safari missoes
+/safari loja
+
+Configuração gerada automaticamente na primeira inicialização:
+config/shirokai-safari-missions.json
+config/shirokai-safari-shop.json
+config/shirokai-safari-menus.json
+
+Nenhuma missão nem produto está cadastrado. A pasta configuracao do ZIP contém modelos VAZIOS e o guia. Não substitua catálogos já preenchidos por esses modelos. Edite os JSONs e use /safariadmin missoes reload.
+
+Os dois menus são próprios e separados, para NPCs configurados com player safari missoes e player safari loja. Exemplos completos em safari-npcs.txt. Trainers0.3.2 foi testado, não incluído nem modificado. Itens/comandos de recompensa exigem resgate fora do Safari; coloque o NPC de compra no hub externo se desejar compra no local.
+
+Pontos, progresso e recibos ficam no arquivo missions.json em world/data/shirokai-safari, sob a pasta real do mundo. Preserve-o para não perder saldo e limites. Compras/entregas externas incertas ficam bloqueadas até revisão administrativa; leia CONFIGURACAO.md antes de confirmar/cancelar.

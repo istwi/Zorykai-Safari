@@ -1,3 +1,12 @@
+# 0.2.0
+
+- Menus independentes `/safari missoes` e `/safari loja`, permitidos em NPCs de comandos do Trainers.
+- JSONs separados para missões, produtos e aparência dos menus; catálogos vazios por padrão.
+- Progresso diário/semanal por captura, espécies distintas, derrotas selvagens, regiões e diárias resgatadas; filtros e fuso/horário de renovação configuráveis.
+- Pontos Safari persistentes, resgate único e loja com confirmação/custo/limites diário, semanal, mensal ou permanente por jogador.
+- Recibos persistidos antes de entregas externas, bloqueio de repetição e revisão administrativa após resultado incerto.
+- Itens/comandos de recompensa exigem saída do Safari, sem alterar o ciclo de entrada ou os pacotes de bolas.
+
 # 0.1.6
 
 - Ao esgotar a cota ou a janela diária, as bolas restantes expiram, inclusive se o retorno falhar.
