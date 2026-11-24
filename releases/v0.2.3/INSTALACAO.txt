@@ -1,0 +1,10 @@
+Safari 0.2.3
+
+Desligue o servidor e substitua o JAR anterior do Safari. Não deixe duas versões em mods.
+
+Correções:
+- PC e máquina de cura do Cobblemon podem ser usados durante uma visita ativa.
+- Diálogos e menus abertos por NPCs do Cobblemon/Shirokai Trainers não são mais fechados pelo Safari.
+- Blocos, entidades e inventários comuns continuam protegidos.
+
+O Clear adaptado não precisa ser substituído.

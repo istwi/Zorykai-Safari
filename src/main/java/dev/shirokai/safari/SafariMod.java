@@ -2,6 +2,8 @@ package dev.shirokai.safari;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.battles.BattleRegistry;
+import com.cobblemon.mod.common.block.HealingMachineBlock;
+import com.cobblemon.mod.common.block.PCBlock;
 import com.cobblemon.mod.common.entity.npc.NPCEntity;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.mojang.brigadier.arguments.*;
@@ -46,6 +48,7 @@ public final class SafariMod implements ModInitializer {
 
   private final Map<UUID, Confirmation> confirmations = new HashMap<>();
   private final Map<UUID, Long> retry = new HashMap<>();
+  private final Set<UUID> externalMenus = new HashSet<>();
 
   @Override
   public void onInitialize() {
@@ -137,6 +140,7 @@ public final class SafariMod implements ModInitializer {
           var p = handler.getPlayer();
           confirmations.remove(p.getUUID());
           adminMode.remove(p.getUUID());
+          externalMenus.remove(p.getUUID());
           if (healthy && active(p)) {
             var v = visit(p);
             captureVisit(p, System.currentTimeMillis());
@@ -156,23 +160,29 @@ public final class SafariMod implements ModInitializer {
           }
         });
     UseBlockCallback.EVENT.register(
-        (p, w, h, hit) ->
-            p instanceof ServerPlayer sp && locked(sp)
-                ? InteractionResult.FAIL
-                : InteractionResult.PASS);
+        (p, w, h, hit) -> {
+          if (!(p instanceof ServerPlayer sp) || !locked(sp)) return InteractionResult.PASS;
+          var block = w.getBlockState(hit.getBlockPos()).getBlock();
+          if (block instanceof PCBlock || block instanceof HealingMachineBlock) {
+            externalMenus.add(sp.getUUID());
+            return InteractionResult.PASS;
+          }
+          return InteractionResult.FAIL;
+        });
     AttackBlockCallback.EVENT.register(
         (p, w, h, pos, face) ->
             p instanceof ServerPlayer sp && locked(sp)
                 ? InteractionResult.FAIL
                 : InteractionResult.PASS);
     UseEntityCallback.EVENT.register(
-        (p, w, h, e, hit) ->
-            p instanceof ServerPlayer sp
-                    && locked(sp)
-                    && !(e instanceof PokemonEntity)
-                    && !(e instanceof NPCEntity)
-                ? InteractionResult.FAIL
-                : InteractionResult.PASS);
+        (p, w, h, e, hit) -> {
+          if (!(p instanceof ServerPlayer sp) || !locked(sp)) return InteractionResult.PASS;
+          if (e instanceof NPCEntity) {
+            externalMenus.add(sp.getUUID());
+            return InteractionResult.PASS;
+          }
+          return e instanceof PokemonEntity ? InteractionResult.PASS : InteractionResult.FAIL;
+        });
     AttackEntityCallback.EVENT.register(
         (p, w, h, e, hit) ->
             p instanceof ServerPlayer sp && locked(sp)
@@ -1245,7 +1255,9 @@ public final class SafariMod implements ModInitializer {
             && !(p.containerMenu instanceof SafariMenu)
             && !(p.containerMenu instanceof RegionsMenu)
             && !(p.containerMenu instanceof TasksMenu)
-            && !(p.containerMenu instanceof AdminMenu)) closeMenuIfOpen(p);
+            && !(p.containerMenu instanceof AdminMenu)
+            && !externalMenus.contains(p.getUUID())) closeMenuIfOpen(p);
+        if (p.containerMenu == p.inventoryMenu) externalMenus.remove(p.getUUID());
         if (tasks != null) tasks.safeTick(p);
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(5);

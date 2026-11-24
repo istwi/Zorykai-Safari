@@ -1,6 +1,6 @@
-# Zorykai Safari 0.2.2
+# Zorykai Safari 0.2.3
 
-[JAR Safari 0.2.2](releases/v0.2.2/Shirokai-Safari-0.2.2.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[JAR Safari 0.2.3](releases/v0.2.3/Shirokai-Safari-0.2.3.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
