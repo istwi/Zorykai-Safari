@@ -1,6 +1,6 @@
-# Zorykai Safari 0.2.6
+# Zorykai Safari 0.2.7
 
-[JAR Safari 0.2.6](releases/v0.2.6/Shirokai-Safari-0.2.6.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[JAR Safari 0.2.7](releases/v0.2.7/Shirokai-Safari-0.2.7.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -93,7 +93,7 @@ Os efeitos podem coexistir. Configurar um efeito redefine o prazo comum do event
 
 Por padrão, o Safari também faz uma tentativa automática a cada 2 horas de servidor. Cada tentativa tem 1% de chance de iniciar um evento de 30 minutos com shiny 2x e spawn total 4x. Um evento manual ativo nunca é substituído. Quando o sorteio vence, jogadores com ciclo vigente mas sem nenhum tempo restante recebem 30 minutos e 16 Safari Balls; quem ainda possui tempo não acumula esse bônus. Intervalo, chance, duração, bônus e multiplicadores ficam em `randomEvents` no `shirokai-safari.json`; `chance` usa escala de 0 a 1 (`0.01` = 1%). O próximo sorteio é persistido entre reinícios.
 
-Use `/safariadmin evento automatico on`, `off` ou `status`. Ativar agenda uma nova tentativa para depois do intervalo configurado; desativar impede novos sorteios, mas não encerra um evento que já começou.
+Use `/safariadmin evento automatico ligar`, `pausar` ou `status`. Ligar agenda uma nova tentativa para depois do intervalo configurado; pausar impede novos sorteios, mas não encerra um evento que já começou.
 
 
 ## Boss bar e anúncios editáveis

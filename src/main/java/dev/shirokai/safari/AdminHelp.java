@@ -40,8 +40,8 @@ public final class AdminHelp {
           "/safariadmin evento tempo 30 60",
           "/safariadmin evento status",
           "/safariadmin evento automatico status",
-          "/safariadmin evento automatico on",
-          "/safariadmin evento automatico off",
+          "/safariadmin evento automatico ligar",
+          "/safariadmin evento automatico pausar",
           "/safariadmin evento parar",
           "/safariadmin reload"
         })

@@ -531,8 +531,8 @@ public final class SafariMod implements ModInitializer {
           automatic.then(
               Commands.literal("status")
                   .executes(c -> run(c.getSource(), () -> automaticEventStatus(c.getSource()))));
-          automatic.then(
-              Commands.literal("on")
+          var automaticOn =
+              Commands.literal("ligar")
                   .executes(
                       c ->
                           run(
@@ -548,9 +548,10 @@ public final class SafariMod implements ModInitializer {
                                         next.randomEvents.intervalSeconds);
                                 save();
                                 automaticEventStatus(c.getSource());
-                              })));
-          automatic.then(
-              Commands.literal("off")
+                              }));
+          automatic.then(automaticOn);
+          var automaticOff =
+              Commands.literal("pausar")
                   .executes(
                       c ->
                           run(
@@ -561,7 +562,8 @@ public final class SafariMod implements ModInitializer {
                                 next.validate();
                                 saveConfig(next);
                                 automaticEventStatus(c.getSource());
-                              })));
+                              }));
+          automatic.then(automaticOff);
           event.then(automatic);
           event.then(
               Commands.literal("parar")

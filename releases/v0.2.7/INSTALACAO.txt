@@ -1,0 +1,10 @@
+Safari 0.2.7
+
+Substitua o JAR anterior; não mantenha duas versões em mods.
+
+Comandos do evento automático:
+- /safariadmin evento automatico ligar
+- /safariadmin evento automatico pausar
+- /safariadmin evento automatico status
+
+Pausar não encerra um evento que já esteja em andamento.
