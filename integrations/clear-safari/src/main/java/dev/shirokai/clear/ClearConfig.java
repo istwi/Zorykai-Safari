@@ -207,6 +207,7 @@ public final class ClearConfig {
 
   public static final class Safari {
     public boolean enabled = true;
+    public boolean onlyWhenOccupied = true;
     public int intervalSeconds = 120;
     public boolean clearItems = true, clearWildPokemon = true;
     public int minimumItemAgeSeconds = 0, minimumPokemonAgeSeconds = 0;

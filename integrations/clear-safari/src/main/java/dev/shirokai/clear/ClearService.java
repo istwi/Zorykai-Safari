@@ -146,7 +146,11 @@ public final class ClearService {
                 "{seconds}", Long.toString((next - ticks) / 20)),
             false,
             area);
-      if (config.safari.enabled && area != null) {
+      boolean safariOccupied =
+          config.safari.enabled
+              && area != null
+              && (!config.safari.onlyWhenOccupied || area.occupied(server));
+      if (safariOccupied) {
         if (ticks >= safariNext) {
           if (safariJob == null) startSafari(Mode.ALL, false, null);
           safariNext = ticks + config.safari.intervalSeconds * 20L;
@@ -159,7 +163,11 @@ public final class ClearService {
                   "{seconds}", Long.toString((safariNext - ticks) / 20)),
               true,
               area);
-      } else ++safariNext;
+      } else {
+        ++safariNext;
+        // Pause the regional countdown and cancel its sweep when the area is empty.
+        safariJob = null;
+      }
     } else {
       ++next;
       ++safariNext;

@@ -8,3 +8,8 @@ Comandos do evento automático:
 - /safariadmin evento automatico status
 
 Pausar não encerra um evento que já esteja em andamento.
+
+Clear opcional incluído: Shirokai-Clear-1.0.2-Safari-Occupied.jar
+- substitua o Clear 1.0.1 adaptado;
+- a limpeza regional pausa quando não há jogadores dentro do Safari;
+- a limpeza global continua funcionando normalmente.

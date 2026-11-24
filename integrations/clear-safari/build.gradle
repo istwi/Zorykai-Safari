@@ -1,6 +1,6 @@
 plugins { id 'fabric-loom' version '1.10.5'; id 'java' }
 group='dev.shirokai.clear'
-version='1.0.1-safari'
+version='1.0.2-safari-occupied'
 base { archivesName='Shirokai-Clear' }
 repositories { mavenCentral(); maven { url='https://artefacts.cobblemon.com/releases' } }
 dependencies {

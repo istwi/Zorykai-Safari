@@ -20,6 +20,7 @@ class SafariConfigTest {
     assertEquals(900, c.intervalSeconds);
     assertEquals("MEU AVISO {seconds}", c.announcements.warningMessage);
     assertEquals(120, c.safari.intervalSeconds);
+    assertTrue(c.safari.onlyWhenOccupied);
     assertTrue(Files.readString(path).contains("\"safari\""));
     var again = ClearConfig.load(path);
     assertEquals(900, again.intervalSeconds);

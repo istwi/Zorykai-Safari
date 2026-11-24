@@ -1,6 +1,6 @@
 # Zorykai Safari 0.2.7
 
-[JAR Safari 0.2.7](releases/v0.2.7/Shirokai-Safari-0.2.7.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[JAR Safari 0.2.7](releases/v0.2.7/Shirokai-Safari-0.2.7.jar) · [JAR Clear 1.0.2](releases/v0.2.7/Shirokai-Clear-1.0.2-Safari-Occupied.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -125,7 +125,7 @@ A seção `safari` é acrescentada automaticamente a `config/shirokaiclear.json`
 - Não carrega chunks para limpar. Duas rotinas compartilham o orçamento de processamento em lotes para evitar picos.
 - As proteções originais de dono, batalha, captura ocupada, NPC, raid, metadados, espécies e raridades são mantidas. Se o seu Clear protege shinies/lendários, eles continuam protegidos também no Safari.
 
-A rotina local usa idade mínima 0 por padrão, configurável separadamente. As exclusões globais de dimensão não anulam a limpeza local: a área do Safari já define a dimensão e os limites válidos. O `enabled` geral e `/shirokaiclear pause` continuam controlando a automação; `safari.enabled` permite desativar a divisão regional e voltar ao comportamento global original.
+A rotina local usa idade mínima 0 por padrão, configurável separadamente. No Clear 1.0.2, `safari.onlyWhenOccupied` vem ativado: sem jogadores fisicamente dentro da área, o contador e a varredura regionais ficam pausados. As exclusões globais de dimensão não anulam a limpeza local: a área do Safari já define a dimensão e os limites válidos. O `enabled` geral e `/shirokaiclear pause` continuam controlando a automação; `safari.enabled` permite desativar a divisão regional e voltar ao comportamento global original.
 
 Edite somente a seção `safari` para ajustar intervalo e mensagens locais, por exemplo `intervalSeconds: 120`. Os textos aceitam `{seconds}`, `{items}`, `{pokemon}`, cores/negrito com `&` e `§`. Use `/shirokaiclear reload` para aplicar. `/shirokaiclear status` e o painel `/safariadmin menu` mostram o contador e o último resultado local.
 

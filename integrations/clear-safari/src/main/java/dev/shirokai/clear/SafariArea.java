@@ -2,6 +2,7 @@ package dev.shirokai.clear;
 
 import java.lang.reflect.*;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 
 /** JDK-only ABI to Safari's configured cuboid, including its actual dimension key. */
@@ -38,6 +39,11 @@ public record SafariArea(
         entity.getX(),
         entity.getY(),
         entity.getZ());
+  }
+
+  public boolean occupied(MinecraftServer server) {
+    for (var player : server.getPlayerList().getPlayers()) if (contains(player)) return true;
+    return false;
   }
 
   public boolean contains(String dim, double x, double y, double z) {
