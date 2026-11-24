@@ -1,0 +1,11 @@
+Safari 0.2.6
+
+Substitua o JAR anterior; não mantenha duas versões em mods.
+
+Comandos novos:
+- /safariadmin evento automatico on
+- /safariadmin evento automatico off
+- /safariadmin evento automatico status
+
+Desativar impede novos sorteios e não interrompe um evento em andamento.
+Ativar agenda a próxima tentativa conforme o intervalo configurado.

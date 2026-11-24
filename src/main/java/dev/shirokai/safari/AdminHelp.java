@@ -39,6 +39,9 @@ public final class AdminHelp {
           "/safariadmin evento forma cobblemon:rattata alolan 30 60",
           "/safariadmin evento tempo 30 60",
           "/safariadmin evento status",
+          "/safariadmin evento automatico status",
+          "/safariadmin evento automatico on",
+          "/safariadmin evento automatico off",
           "/safariadmin evento parar",
           "/safariadmin reload"
         })

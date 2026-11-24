@@ -525,6 +525,44 @@ public final class SafariMod implements ModInitializer {
           event.then(
               Commands.literal("status")
                   .executes(c -> run(c.getSource(), () -> eventStatus(c.getSource()))));
+          var automatic =
+              Commands.literal("automatico")
+                  .executes(c -> run(c.getSource(), () -> automaticEventStatus(c.getSource())));
+          automatic.then(
+              Commands.literal("status")
+                  .executes(c -> run(c.getSource(), () -> automaticEventStatus(c.getSource()))));
+          automatic.then(
+              Commands.literal("on")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> {
+                                var next = copyConfig();
+                                next.randomEvents.enabled = true;
+                                next.validate();
+                                saveConfig(next);
+                                data.nextRandomEventRoll =
+                                    RandomEventRoll.next(
+                                        System.currentTimeMillis(),
+                                        next.randomEvents.intervalSeconds);
+                                save();
+                                automaticEventStatus(c.getSource());
+                              })));
+          automatic.then(
+              Commands.literal("off")
+                  .executes(
+                      c ->
+                          run(
+                              c.getSource(),
+                              () -> {
+                                var next = copyConfig();
+                                next.randomEvents.enabled = false;
+                                next.validate();
+                                saveConfig(next);
+                                automaticEventStatus(c.getSource());
+                              })));
+          event.then(automatic);
           event.then(
               Commands.literal("parar")
                   .executes(
@@ -1418,6 +1456,20 @@ public final class SafariMod implements ModInitializer {
 
   public void eventStatus(CommandSourceStack source) {
     source.sendSuccess(() -> Component.literal("✦ SAFARI » " + eventDescription()), false);
+  }
+
+  private void automaticEventStatus(CommandSourceStack source) {
+    var random = config.randomEvents;
+    long remaining = Math.max(0, data.nextRandomEventRoll - System.currentTimeMillis());
+    String status =
+        random.enabled
+            ? "ativado • próxima tentativa em "
+                + format(remaining)
+                + " • chance "
+                + percent(random.chance)
+                + "%"
+            : "desativado";
+    source.sendSuccess(() -> Component.literal("✦ SAFARI » Evento automático " + status), false);
   }
 
   private void eventChanged(CommandSourceStack source) {
