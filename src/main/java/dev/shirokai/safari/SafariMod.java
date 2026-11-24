@@ -80,6 +80,17 @@ public final class SafariMod implements ModInitializer {
                     : new Storage.Data();
             if (data.schemaVersion != 1 || data.players == null || data.event == null)
               throw new IllegalStateException("Estado incompatível");
+            if (data.event.shinyChance > 0) {
+              data.event.shinyMultiplier =
+                  ShinyBoost.migrateLegacyChance(
+                      data.event.shinyChance,
+                      com.cobblemon.mod.common.Cobblemon.INSTANCE.getConfig().getShinyRate());
+              data.event.shinyChance = 0;
+            }
+            if (!Double.isFinite(data.event.shinyMultiplier)
+                || data.event.shinyMultiplier < 1
+                || data.event.shinyMultiplier > 10000)
+              throw new IllegalStateException("Multiplicador shiny inválido");
             for (var e : data.players.entrySet()) {
               UUID.fromString(e.getKey());
               e.getValue().validate();
@@ -573,7 +584,7 @@ public final class SafariMod implements ModInitializer {
           event.then(
               Commands.literal("shiny")
                   .then(
-                      Commands.argument("chance_percentual", DoubleArgumentType.doubleArg(0, 100))
+                      Commands.argument("multiplicador", DoubleArgumentType.doubleArg(1, 10000))
                           .then(
                               Commands.argument("minutos", IntegerArgumentType.integer(1, 1440))
                                   .executes(
@@ -583,10 +594,9 @@ public final class SafariMod implements ModInitializer {
                                               () -> {
                                                 eventFor(
                                                     IntegerArgumentType.getInteger(c, "minutos"));
-                                                data.event.shinyChance =
+                                                data.event.shinyMultiplier =
                                                     DoubleArgumentType.getDouble(
-                                                            c, "chance_percentual")
-                                                        / 100;
+                                                        c, "multiplicador");
                                                 save();
                                                 eventChanged(c.getSource());
                                               })))));
@@ -1320,7 +1330,7 @@ public final class SafariMod implements ModInitializer {
     var effects = new java.util.ArrayList<String>();
     if (event.spawn != 1)
       effects.add("Spawn " + Math.min(10, config.spawnMultiplier * event.spawn) + "x");
-    if (event.shinyChance > 0) effects.add("Shiny adicional " + percent(event.shinyChance) + "%");
+    if (event.shinyMultiplier > 1) effects.add("Shiny " + number(event.shinyMultiplier) + "x");
     if (event.formChance > 0 && !event.forms.isEmpty())
       effects.add("Formas " + event.forms + " • " + percent(event.formChance) + "%");
     if (event.bonusMillis > 0) effects.add("Tempo extra " + format(event.bonusMillis));
@@ -1332,6 +1342,10 @@ public final class SafariMod implements ModInitializer {
 
   private String percent(double chance) {
     return java.math.BigDecimal.valueOf(chance * 100).stripTrailingZeros().toPlainString();
+  }
+
+  private String number(double value) {
+    return java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
   }
 
   public void eventStatus(CommandSourceStack source) {
@@ -1352,7 +1366,7 @@ public final class SafariMod implements ModInitializer {
     var e = data.event;
     var parts = new java.util.ArrayList<String>();
     if (e.spawn != 1) parts.add("Spawn " + Math.min(10, config.spawnMultiplier * e.spawn) + "x");
-    if (e.shinyChance > 0) parts.add("Shiny +" + percent(e.shinyChance) + "%");
+    if (e.shinyMultiplier > 1) parts.add("Shiny " + number(e.shinyMultiplier) + "x");
     if (e.formChance > 0 && !e.forms.isEmpty())
       parts.add("Formas especiais " + percent(e.formChance) + "%");
     if (e.bonusMillis > 0) parts.add("Tempo extra " + format(e.bonusMillis));

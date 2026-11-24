@@ -18,7 +18,9 @@ public final class Storage {
   public static final class Event {
     public long starts, ends, bonusMillis;
     public boolean endAnnounced = true;
-    public double spawn = 1, shinyChance = 0, formChance = 0;
+    public double spawn = 1, shinyMultiplier = 1, formChance = 0;
+    /** Campo legado 0.2.x; migrado uma única vez para shinyMultiplier. */
+    public double shinyChance = 0;
     public Map<String, String> forms = new LinkedHashMap<>();
 
     public boolean running(long now) {

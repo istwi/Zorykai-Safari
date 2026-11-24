@@ -35,7 +35,7 @@ public final class AdminHelp {
           "/safariadmin economia NomeDoPlayer",
           "/safariadmin tempo NomeDoPlayer 30",
           "/safariadmin evento spawn 2 60",
-          "/safariadmin evento shiny 1 60",
+          "/safariadmin evento shiny 4 60",
           "/safariadmin evento forma cobblemon:rattata alolan 30 60",
           "/safariadmin evento tempo 30 60",
           "/safariadmin evento status",
@@ -54,7 +54,7 @@ public final class AdminHelp {
     source.sendSuccess(
         () ->
             Component.literal(
-                "Clique para preencher. Tempos dos eventos em minutos; chances em %. Use"
+                "Clique para preencher. Shiny usa multiplicador da chance base; formas usam %. Use"
                     + " /safariadmin evento status para conferir."),
         false);
     return 1;

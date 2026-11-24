@@ -48,7 +48,7 @@ public final class Announcements {
                 mod.config.spawnMultiplier
                     * (e.running(System.currentTimeMillis()) ? e.spawn : 1))),
         "shiny",
-        Double.toString(e.shinyChance * 100),
+        Double.toString(e.shinyMultiplier),
         "formas",
         e.forms.toString(),
         "bonus_tempo",

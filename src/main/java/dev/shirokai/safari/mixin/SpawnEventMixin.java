@@ -32,7 +32,13 @@ public abstract class SpawnEventMixin {
     if (!event.running(System.currentTimeMillis())) return;
     var pokemon = entity.getPokemon();
     var random = entity.getRandom();
-    if (event.shinyChance > 0 && random.nextDouble() < event.shinyChance) pokemon.setShiny(true);
+    if (!pokemon.getShiny()
+        && event.shinyMultiplier > 1
+        && random.nextDouble()
+            < ShinyBoost.extraRollChance(
+                event.shinyMultiplier,
+                com.cobblemon.mod.common.Cobblemon.INSTANCE.getConfig().getShinyRate()))
+      pokemon.setShiny(true);
     var formName = event.forms.get(pokemon.getSpecies().getResourceIdentifier().toString());
     if (formName != null && random.nextDouble() < event.formChance) {
       Forms.find(pokemon.getSpecies(), formName)

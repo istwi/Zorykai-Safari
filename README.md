@@ -1,6 +1,6 @@
-# Zorykai Safari 0.2.3
+# Zorykai Safari 0.2.4
 
-[JAR Safari 0.2.3](releases/v0.2.3/Shirokai-Safari-0.2.3.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
+[JAR Safari 0.2.4](releases/v0.2.4/Shirokai-Safari-0.2.4.jar) · [Pacote Safari + Clear 0.2.0](releases/v0.2.0/Zorykai-Safari-0.2.0-e-Clear.zip) · [JAR Clear](releases/v0.2.0/Shirokai-Clear-1.0.1-Zorykai-Safari.jar) · [Validação](VALIDATION.md) · [JSON de mensagens](examples/shirokai-safari-messages.json)
 
 Os identificadores técnicos e nomes dos arquivos usam `shirokai_safari` / `shirokai-safari` para manter consistência com o projeto.
 
@@ -83,13 +83,13 @@ O acesso normal usa `shirokai.safari.use`, permitido por padrão quando não há
 Os eventos são persistidos e terminam pelo horário real, inclusive se o servidor reiniciar. Alteram somente novas gerações naturais do PlayerSpawner de um visitante dentro da área; não alteram Pokémon de jogadores, NPCs, raids, Pokémon já existentes ou spawns por comando.
 
 - `/safariadmin evento spawn 2 60`: por 60 minutos, aplica outro fator 2 sobre o padrão 2×, resultando em 4×, limitado a 10× no total.
-- `/safariadmin evento shiny 1 60`: por 60 minutos, dá uma chance adicional de 1% de tornar shiny cada spawn elegível. Não remove shinies naturais; a chance final é a composição com a chance natural, não exatamente 1%.
+- `/safariadmin evento shiny 4 60`: por 60 minutos, multiplica por 4 a chance shiny base configurada no Cobblemon. Exemplo: `1/8192` passa a `4/8192`; não vira 4% e não altera shinies que já nasceram naturalmente.
 - `/safariadmin evento forma cobblemon:rattata alolan 30 60`: por 60 minutos, 30% dos Rattata naturalmente gerados no Safari recebem a forma Alola. Aceita o nome da forma ou aspecto registrado. A espécie precisa aparecer naturalmente no local; o evento não cria uma espécie que não esteja na tabela. Formas inexistentes são recusadas.
 - `/safariadmin evento tempo 30 60`: acrescenta 30 minutos aos ciclos vigentes de todos e dá esse bônus aos novos ciclos iniciados durante os próximos 60 minutos. O mesmo ciclo não recebe o bônus novamente só por sair e entrar. Executar o comando de novo é uma nova concessão administrativa.
 - `/safariadmin evento status`: mostra se o evento está ativo, seus efeitos e o tempo restante. Ativar um evento produz confirmação e anúncio.
 - `/safariadmin evento parar`: encerra os efeitos temporários de spawn/shiny/forma e o bônus para novos ciclos. Tempo já concedido não é retirado.
 
-Os efeitos podem coexistir. Configurar um efeito redefine o prazo comum do evento; não há agendas independentes. Para encerrar só uma chance, configure-a como 0; para spawn, use 1.
+Os efeitos podem coexistir. Configurar um efeito redefine o prazo comum do evento; não há agendas independentes. Para retirar apenas o bônus shiny ou de spawn, use multiplicador 1; para retirar uma chance de forma, use 0.
 
 
 ## Boss bar e anúncios editáveis

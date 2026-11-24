@@ -1,0 +1,11 @@
+Safari 0.2.4
+
+Substitua o JAR anterior do Safari; não mantenha duas versões em mods.
+
+O evento shiny agora multiplica a chance base configurada no Cobblemon:
+  /safariadmin evento shiny 4 60
+
+Com uma base de 1/8192, 4x resulta em 4/8192. O valor 1x remove o bônus.
+Eventos antigos em porcentagem são migrados automaticamente para um multiplicador equivalente.
+
+As correções de NPC, PC e máquina de cura da versão 0.2.3 foram mantidas.
