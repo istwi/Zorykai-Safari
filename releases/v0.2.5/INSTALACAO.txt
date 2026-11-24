@@ -1,0 +1,13 @@
+Safari 0.2.5
+
+Substitua o JAR anterior; não mantenha duas versões em mods.
+
+Evento aleatório padrão:
+- tentativa a cada 2 horas;
+- 1% de chance por tentativa;
+- duração de 30 minutos;
+- shiny 2x e spawn total 4x;
+- ciclos vigentes sem tempo recebem 30 minutos e 16 Safari Balls.
+
+Todos os valores ficam em randomEvents no config/shirokai-safari.json.
+As correções de NPC, PC, healer e multiplicador shiny foram mantidas.

@@ -11,6 +11,7 @@ public final class Storage {
 
   public static final class Data {
     public int schemaVersion = 1;
+    public long nextRandomEventRoll;
     public Map<String, Visit> players = new LinkedHashMap<>();
     public Event event = new Event();
   }

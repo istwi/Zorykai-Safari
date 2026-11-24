@@ -65,6 +65,7 @@ public final class SafariMod implements ModInitializer {
         Storage.write(configPath, config);
       }
       config.validate();
+      Storage.write(configPath, config);
       messages = Messages.load(configPath.resolveSibling("shirokai-safari-messages.json"));
     } catch (Exception e) {
       throw new IllegalStateException("Configuração do Safari inválida", e);
@@ -80,6 +81,10 @@ public final class SafariMod implements ModInitializer {
                     : new Storage.Data();
             if (data.schemaVersion != 1 || data.players == null || data.event == null)
               throw new IllegalStateException("Estado incompatível");
+            if (data.nextRandomEventRoll <= 0)
+              data.nextRandomEventRoll =
+                  RandomEventRoll.next(
+                      System.currentTimeMillis(), config.randomEvents.intervalSeconds);
             if (data.event.shinyChance > 0) {
               data.event.shinyMultiplier =
                   ShinyBoost.migrateLegacyChance(
@@ -987,9 +992,13 @@ public final class SafariMod implements ModInitializer {
   }
 
   private void extendVisit(UUID id, Visit v, long bonus, long now) {
+    extendVisit(id, v, bonus, now, config.ballBundle);
+  }
+
+  private void extendVisit(UUID id, Visit v, long bonus, long now, int bundle) {
     var p = server.getPlayerList().getPlayer(id);
     if (p != null && v.active) captureVisit(p, now);
-    boolean fresh = v.extend(now, bonus, config.ballBundle);
+    boolean fresh = v.extend(now, bonus, bundle);
     // Persist before physical delivery. A reconnect reconstructs from this balance, never
     // re-grants.
     save();
@@ -1242,6 +1251,7 @@ public final class SafariMod implements ModInitializer {
   private void tick() {
     if (!healthy || server == null) return;
     long now = System.currentTimeMillis();
+    randomEventTick(now);
     if (data.event.ends > 0 && !data.event.running(now) && !data.event.endAnnounced) {
       data.event.endAnnounced = true;
       save();
@@ -1294,6 +1304,64 @@ public final class SafariMod implements ModInitializer {
       }
     }
     if (changed) save();
+  }
+
+  private void randomEventTick(long now) {
+    var random = config.randomEvents;
+    if (!random.enabled) return;
+    if (data.nextRandomEventRoll <= 0) {
+      data.nextRandomEventRoll = RandomEventRoll.next(now, random.intervalSeconds);
+      save();
+      return;
+    }
+    if (now < data.nextRandomEventRoll) return;
+    data.nextRandomEventRoll = RandomEventRoll.next(now, random.intervalSeconds);
+    boolean start =
+        !data.event.running(now)
+            && RandomEventRoll.wins(
+                random.chance,
+                java.util.concurrent.ThreadLocalRandom.current().nextDouble());
+    if (start) {
+      data.event = new Storage.Event();
+      data.event.starts = now;
+      data.event.ends = RandomEventRoll.next(now, random.durationSeconds);
+      data.event.endAnnounced = false;
+      // Event.spawn is a factor over the normal Safari multiplier; config stores the desired total.
+      data.event.spawn = random.spawnMultiplier / config.spawnMultiplier;
+      data.event.shinyMultiplier = random.shinyMultiplier;
+      int rewarded = 0;
+      for (var entry : data.players.entrySet()) {
+        var visit = entry.getValue();
+        if (now >= visit.cycleEnd) continue;
+        var id = UUID.fromString(entry.getKey());
+        var player = server.getPlayerList().getPlayer(id);
+        if (player != null && visit.active) captureVisit(player, now);
+        if (visit.remaining() > 0) continue;
+        extendVisit(
+            id,
+            visit,
+            random.exhaustedBonusSeconds * 1000L,
+            now,
+            random.exhaustedBonusBalls);
+        if (player != null)
+          tell(
+              player,
+              "Evento aleatório: você recebeu "
+                  + (random.exhaustedBonusSeconds / 60)
+                  + " minutos e "
+                  + random.exhaustedBonusBalls
+                  + " Safari Balls.");
+        rewarded++;
+      }
+      LOG.info(
+          "Evento Safari aleatório iniciado: spawn={}x shiny={}x duração={}s bônus_exaustos={}",
+          random.spawnMultiplier,
+          random.shinyMultiplier,
+          random.durationSeconds,
+          rewarded);
+      Announcements.event(this, true);
+    }
+    save();
   }
 
   public static boolean lockedPlayer(net.minecraft.world.entity.player.Player p) {

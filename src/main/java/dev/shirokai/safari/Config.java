@@ -12,10 +12,18 @@ public final class Config {
   public String ballItem = "cobblemon:safari_ball", currency = "impactor:dollars";
   public java.math.BigDecimal bundlePrice = new java.math.BigDecimal("10000");
   public double spawnMultiplier = 2;
+  public RandomEvents randomEvents = new RandomEvents();
   public Area area;
   public Position entrance;
   public Position lobby;
   public Map<String, Position> regions = new LinkedHashMap<>();
+
+  public static final class RandomEvents {
+    public boolean enabled = true;
+    public long intervalSeconds = 7200, durationSeconds = 1800, exhaustedBonusSeconds = 1800;
+    public int exhaustedBonusBalls = 16;
+    public double chance = 0.01, shinyMultiplier = 2, spawnMultiplier = 4;
+  }
 
   public record Position(String dimension, double x, double y, double z, float yaw, float pitch) {}
 
@@ -44,7 +52,25 @@ public final class Config {
         || bundlePrice.compareTo(new java.math.BigDecimal("1000000000")) > 0
         || !Double.isFinite(spawnMultiplier)
         || spawnMultiplier < 1
-        || spawnMultiplier > 10)
+        || spawnMultiplier > 10
+        || randomEvents == null
+        || randomEvents.intervalSeconds < 60
+        || randomEvents.intervalSeconds > 604800
+        || randomEvents.durationSeconds < 60
+        || randomEvents.durationSeconds > 86400
+        || randomEvents.exhaustedBonusSeconds < 60
+        || randomEvents.exhaustedBonusSeconds > 86400
+        || randomEvents.exhaustedBonusBalls < 1
+        || randomEvents.exhaustedBonusBalls > 64
+        || !Double.isFinite(randomEvents.chance)
+        || randomEvents.chance < 0
+        || randomEvents.chance > 1
+        || !Double.isFinite(randomEvents.shinyMultiplier)
+        || randomEvents.shinyMultiplier < 1
+        || randomEvents.shinyMultiplier > 10000
+        || !Double.isFinite(randomEvents.spawnMultiplier)
+        || randomEvents.spawnMultiplier < 1
+        || randomEvents.spawnMultiplier > 10)
       throw new IllegalArgumentException("Limites de configuração inválidos");
     if (vipSeconds == null
         || vipSeconds.size() > 50
